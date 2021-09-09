@@ -13,6 +13,8 @@ pub struct BalanceChangeEvent {
     address: AddressWrapper,
     /// The balance change data.
     balance_change: i64,
+    /// Total account balance
+    new_balance: u64,
     /// the output/transaction?
 }
 
@@ -50,4 +52,21 @@ pub enum TransferProgressType {
     PerformingPoW,
     /// Broadcasting.
     Broadcasting,
+}
+
+pub struct AddressConsolidationNeeded {
+    /// The associated account identifier.
+    #[serde(rename = "accountId")]
+    pub account_id: String,
+    /// The associated address.
+    #[serde(with = "crate::serde::iota_address_serde")]
+    pub address: AddressWrapper,
+}
+
+pub struct LedgerAddressGeneration {
+    #[serde(rename = "accountId")]
+    /// The associated account identifier.
+    pub account_id: String,
+    /// The transfer event type.
+    pub event: AddressData,
 }

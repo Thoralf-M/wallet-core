@@ -21,10 +21,4 @@ pub trait Signer {
         inputs: &mut Vec<TransactionInput>,
         metadata: SignMessageMetadata<'a>,
     ) -> crate::Result<Vec<iota_client::bee_message::prelude::UnlockBlock>>;
-    /// Signs message.
-    async fn sign_message<'a>(
-        &mut self,
-        account: &Account,
-        message: &Vec<u8>,
-    ) -> crate::Result<Vec<u8>>;
 }
