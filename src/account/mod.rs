@@ -1,43 +1,49 @@
+use crate::client::ClientOptions;
 
+pub(crate) mod input_selection;
+pub(crate) mod syncing;
+pub(crate) mod transfer;
 
+use transfer::{TransferOptions, TransferOutput};
+
+use tokio::sync::RwLock;
+
+use std::sync::Arc;
 // Wrapper so we can lock the account during operations
 pub struct AccountHandle {
     account: Arc<RwLock<Account>>,
 }
 
 impl AccountHandle {
-    pub async fn sync(SyncOptions) -> Result<Balance,available_balance>{
-        // ignore outputs from other networks
-        sync_addresses_balance()
-        // get outputs only for addresses that have != 0 as balance
-        sync_addresses_outputs()
-        // check if outputs are unspent, rebroadcast, reattach...
-        sync_transactions(){
-            retry(message_id, sync: false)
-        }
-        // only when actively called or also in the background syncing?
-        consolidate_outputs()
+    pub async fn sync(&self, options: syncing::SyncOptions) -> Result<AccountBalance> {
+        syncing::sync(&self, options)
     }
-    async fn sync_addresses_balance(&Account) -> Result<Vec<Adress>>
-    async fn sync_addresses_outputs(&Account) -> Result<Vec<Output>>
-    async fn sync_transactions(&Account) -> Result<Vec<Transaction>>
-    async fn consolidate_outputs(&Account) -> Result<Vec<Transaction>>
 
-    async fn select_inputs(amount) -> Result<Outputs>{}
-    pub async fn send([TransferOutput(address, amount, output_type)], TransferOptions(remainder_strategy, custom_inputs)) -> Result<Message>{}
-    pub async fn retry(message_id, sync: bool) -> Result<message_id>{}
-    
-    pub async fn generate_addresses(amount) -> Result<Vec<Address>>{}
-    pub async fn list_addresses() -> Result<Vec<Address>>{}
-    // Should only be called from the AccountManager
-    pub(crate) async fn set_client_options(ClientOptions) -> Result<()>{}
+    async fn consolidate_outputs(account: &Account) -> Result<Vec<Transaction>> {}
+
+    pub async fn send(
+        outputs: Vec<TransferOutput>,
+        options: Option<TransferOptions>,
+    ) -> Result<MessageId> {
+        transfer::send()
+    }
+
+    pub async fn retry(message_id: MessageId, sync: bool) -> Result<MessageId> {}
+
+    pub async fn generate_addresses(amount: usize) -> Result<Vec<Address>> {}
+    pub async fn list_addresses() -> Result<Vec<Address>> {}
+    pub fn balance() -> Result<AccountBalance> {}
+
+    // Should only be called from the AccountManager so all accounts use the same options
+    pub(crate) async fn set_client_options(options: ClientOptions) -> Result<()> {}
 }
-
 
 pub struct Account {
     identifier: AccountIdentifier,
     addresses: Vec<Address>,
+    // stored separated from the account for performance?
     outputs: HashMap<Address, Vec<Output>>,
+    // stored separated from the account for performance?
     transactions: Vec<Transaction>,
     client_options: ClientOptions,
     // sync interval, output consolidation
@@ -54,6 +60,11 @@ pub enum AccountIdentifier {
     Index(usize),
 }
 
+struct AccountBalance {
+    total: u64,
+    available: u64,
+}
+
 pub struct Output {
     pub transaction_id: TransactionId,
     pub message_id: MessageId,
@@ -64,18 +75,11 @@ pub struct Output {
     pub kind: OutputKind,
 }
 
-struct TransferOptions {
-    remainder_value_strategy: RemainderValueStrategy,
-    indexation: Option<IndexationDto>,
-    skip_sync: bool,
-    output_kind: Option<OutputKind>,
-}
-
 struct Transaction {
     pub transaction: TransactionPayload,
     pub inputs: Vec<Output>,
     pub attachments: Vec<MessageId>,
     pub confirmed: bool,
-    //network id to ignore outputs when set_client_options is used to switch to another network 
+    //network id to ignore outputs when set_client_options is used to switch to another network
     pub network_id: String,
 }

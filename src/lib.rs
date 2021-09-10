@@ -6,12 +6,17 @@ pub mod account_manager;
 // pub mod actor;
 /// The client module.
 pub mod client;
-pub(crate) mod error;
+/// The error module.
+pub mod error;
 /// Signing interfaces.
 pub mod signing;
-#[cfg(feature = "storage")]
+// #[cfg(feature = "storage")]
 // /// The storage module.
 // pub(crate) mod storage;
 // #[cfg(feature = "stronghold")]
 // #[cfg_attr(docsrs, doc(cfg(feature = "stronghold")))]
 // pub(crate) mod stronghold;
+
+pub use error::Error;
+/// The wallet Result type.
+pub type Result<T> = std::result::Result<T, Error>;

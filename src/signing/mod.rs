@@ -1,3 +1,17 @@
+pub enum SignerType {
+    /// Stronghold signer.
+    #[cfg(feature = "stronghold")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "stronghold")))]
+    Stronghold,
+    /// Ledger Device
+    #[cfg(feature = "ledger-nano")]
+    LedgerNano,
+    /// Ledger Speculos Simulator
+    #[cfg(feature = "ledger-nano-simulator")]
+    LedgerNanoSimulator,
+    /// Custom signer with its identifier.
+    Custom(String),
+}
 /// Signer interface.
 #[async_trait::async_trait]
 pub trait Signer {
