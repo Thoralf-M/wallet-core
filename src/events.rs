@@ -1,11 +1,19 @@
+use crate::account::types::AddressWrapper;
+use iota_client::bee_message::payload::transaction::TransactionId;
 
-pub enum WalletEvent{
+use getset::Getters;
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
+pub enum WalletEvent {
     BalanceChange(BalanceChangeEvent),
     TransactionInclusion(TransactionInclusionEvent),
     TransferProgress(TransferProgressEvent),
-    ConsolidationRequired(Account_Id),
+    // account index
+    ConsolidationRequired(usize),
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct BalanceChangeEvent {
     /// Associated account.
     account_id: String,
@@ -15,29 +23,32 @@ pub struct BalanceChangeEvent {
     balance_change: i64,
     /// Total account balance
     new_balance: u64,
-    /// the output/transaction?
+    // the output/transaction?
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct TransactionInclusionEvent {
     transaction_id: TransactionId,
-    inclusion_state: InclusionState
+    inclusion_state: InclusionState,
 }
-
+#[derive(Serialize, Deserialize)]
 pub enum InclusionState {
     Confirmed,
     Conflicting,
-    Unkown // do we need this for a case like tx created, then the wallet was offline until the node snapshotted the tx?
+    Unkown, // do we need this for a case like tx created, then the wallet was offline until the node snapshotted the tx?
 }
 
-pub struct TransferProgress {
+#[derive(Serialize, Deserialize)]
+pub struct TransferProgressEvent {
     #[serde(rename = "accountId")]
     /// The associated account identifier.
     pub account_id: String,
-    /// The transfer event type.
-    pub event: TransferProgressType,
+    /// The transfer status.
+    pub status: TransferStatusType,
 }
 
-pub enum TransferProgressType {
+#[derive(Serialize, Deserialize)]
+pub enum TransferStatusType {
     /// Syncing account.
     SyncingAccount,
     /// Performing input selection.
@@ -54,6 +65,7 @@ pub enum TransferProgressType {
     Broadcasting,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct AddressConsolidationNeeded {
     /// The associated account identifier.
     #[serde(rename = "accountId")]
@@ -63,10 +75,45 @@ pub struct AddressConsolidationNeeded {
     pub address: AddressWrapper,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct LedgerAddressGeneration {
     #[serde(rename = "accountId")]
     /// The associated account identifier.
     pub account_id: String,
     /// The transfer event type.
     pub event: AddressData,
+}
+
+/// Address event data.
+#[derive(Serialize, Deserialize, Clone, Debug, Getters)]
+#[getset(get = "pub")]
+pub struct AddressData {
+    /// The address.
+    #[getset(get = "pub")]
+    pub address: String,
+}
+
+/// Prepared transaction event data.
+#[derive(Clone, Debug, Getters, Serialize, Deserialize)]
+#[getset(get = "pub")]
+pub struct PreparedTransactionData {
+    /// Transaction inputs.
+    pub inputs: Vec<TransactionIO>,
+    /// Transaction outputs.
+    pub outputs: Vec<TransactionIO>,
+    /// The indexation data.
+    pub data: Option<String>,
+}
+
+/// Input or output data for PreparedTransactionData
+#[derive(Clone, Debug, Getters, Serialize, Deserialize)]
+#[getset(get = "pub")]
+pub struct TransactionIO {
+    /// Address
+    pub address: String,
+    /// Amount
+    pub amount: u64,
+    /// Remainder
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remainder: Option<bool>,
 }

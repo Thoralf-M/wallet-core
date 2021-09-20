@@ -8,6 +8,8 @@ pub mod account_manager;
 pub mod client;
 /// The error module.
 pub mod error;
+/// The event module.
+pub mod events;
 /// Signing interfaces.
 pub mod signing;
 // #[cfg(feature = "storage")]
@@ -16,6 +18,7 @@ pub mod signing;
 // #[cfg(feature = "stronghold")]
 // #[cfg_attr(docsrs, doc(cfg(feature = "stronghold")))]
 // pub(crate) mod stronghold;
+pub(crate) mod serde;
 
 pub use error::Error;
 /// The wallet Result type.
