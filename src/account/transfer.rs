@@ -13,7 +13,6 @@ use iota_client::bee_message::{
     },
     MessageId,
 };
-
 use serde::{Deserialize, Serialize};
 
 use std::str::FromStr;

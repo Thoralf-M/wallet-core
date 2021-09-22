@@ -1,7 +1,7 @@
 use crate::account::types::AddressWrapper;
-use iota_client::bee_message::payload::transaction::TransactionId;
 
 use getset::Getters;
+use iota_client::bee_message::payload::transaction::TransactionId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
