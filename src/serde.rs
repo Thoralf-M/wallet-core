@@ -5,10 +5,7 @@ pub(crate) mod iota_address_serde {
     use crate::account::types::AddressWrapper;
     use serde::{de::Visitor, Deserializer, Serializer};
 
-    pub fn serialize<S: Serializer>(
-        address: &AddressWrapper,
-        s: S,
-    ) -> std::result::Result<S::Ok, S::Error> {
+    pub fn serialize<S: Serializer>(address: &AddressWrapper, s: S) -> std::result::Result<S::Ok, S::Error> {
         s.serialize_str(&address.to_bech32())
     }
 

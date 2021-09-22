@@ -35,7 +35,8 @@ pub struct TransactionInclusionEvent {
 pub enum InclusionState {
     Confirmed,
     Conflicting,
-    Unkown, // do we need this for a case like tx created, then the wallet was offline until the node snapshotted the tx?
+    Unkown, /* do we need this for a case like tx created, then the wallet was offline until the node snapshotted
+             * the tx? */
 }
 
 #[derive(Serialize, Deserialize)]

@@ -1,6 +1,5 @@
 use crate::account::Account;
-use iota_client::bee_message::address::Address;
-use iota_client::bee_message::input::Input;
+use iota_client::bee_message::{address::Address, input::Input};
 
 use getset::Getters;
 use serde::{Deserialize, Serialize};
@@ -20,8 +19,7 @@ pub enum SignerType {
     #[cfg(feature = "ledger-nano-simulator")]
     LedgerNanoSimulator,
     /// Mnemonic, not recommended since it's not as secure as Stronghold or Ledger
-    // feature commented for testing
-    // #[cfg(feature = "mnemonic")]
+    #[cfg(feature = "mnemonic")]
     Mnemonic,
     /// Custom signer with its identifier.
     Custom(String),

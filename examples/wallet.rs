@@ -6,9 +6,7 @@
 use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigBuilder};
 use log::LevelFilter;
 use std::time::Instant;
-use wallet_core::{
-    account_manager::AccountManager, client::ClientOptionsBuilder, signing::SignerType, Result,
-};
+use wallet_core::{account_manager::AccountManager, client::ClientOptionsBuilder, signing::SignerType, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -28,10 +26,7 @@ async fn main() -> Result<()> {
         Ok(account) => account,
         _ => {
             // first we'll create an example account and store it
-            manager
-                .store_mnemonic(SignerType::Mnemonic, None)
-                .await
-                .unwrap();
+            manager.store_mnemonic(SignerType::Mnemonic, None).await.unwrap();
             let client_options = ClientOptionsBuilder::new()
                 .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
                 .finish()

@@ -1,7 +1,8 @@
-use iota_client::bee_message::address::Address;
-use iota_client::bee_message::payload::transaction::TransactionId;
-use iota_client::bee_message::payload::transaction::TransactionPayload;
-use iota_client::bee_message::MessageId;
+use iota_client::bee_message::{
+    address::Address,
+    payload::transaction::{TransactionId, TransactionPayload},
+    MessageId,
+};
 use serde::{Deserialize, Deserializer, Serialize};
 
 use std::{hash::Hash, str::FromStr};
@@ -15,8 +16,9 @@ pub enum AccountIdentifier {
     /// An address identifier.
     #[serde(with = "crate::serde::iota_address_serde")]
     Address(AddressWrapper),
-    // SHA-256 hash of the first address on the seed (m/44'/0'/0'/0'/0'). Required for referencing a seed in Stronghold. The id should be provided by Stronghold.
-    // can we do the hashing only during interaction with Stronghold? Then we could use the first address instead which could be useful
+    // SHA-256 hash of the first address on the seed (m/44'/0'/0'/0'/0'). Required for referencing a seed in
+    // Stronghold. The id should be provided by Stronghold. can we do the hashing only during interaction with
+    // Stronghold? Then we could use the first address instead which could be useful
     Id(String),
     /// Account alias as identifier.
     Alias(String),
@@ -89,7 +91,7 @@ pub struct Transaction {
     pub inputs: Vec<Output>,
     pub attachments: Vec<MessageId>,
     pub confirmed: bool,
-    //network id to ignore outputs when set_client_options is used to switch to another network
+    // network id to ignore outputs when set_client_options is used to switch to another network
     pub network_id: String,
 }
 

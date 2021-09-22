@@ -1,16 +1,15 @@
-use crate::account::syncing::SyncOptions;
-use crate::account::{types::AccountIdentifier, Account, AccountHandle};
-use crate::client::ClientOptions;
-use crate::client::ClientOptionsBuilder;
-use crate::events::WalletEvent;
-use crate::signing::SignerType;
+use crate::{
+    account::{syncing::SyncOptions, types::AccountIdentifier, Account, AccountBuilder, AccountHandle},
+    client::{ClientOptions, ClientOptionsBuilder},
+    events::WalletEvent,
+    signing::SignerType,
+};
 
 use iota_client::Client;
 use tokio::sync::RwLock;
 
 use std::{
-    path::Path,
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{
         atomic::AtomicBool,
         mpsc::{Receiver, Sender},
@@ -69,24 +68,18 @@ impl AccountManager {
         AccountManagerBuilder::new()
     }
 
-    pub async fn create_account(
-        &self,
-        options: Option<ClientOptions>,
-    ) -> crate::Result<AccountHandle> {
+    pub async fn create_account(&self, options: Option<ClientOptions>) -> crate::Result<AccountHandle> {
         // create account so it compiles
-        let mut account_builder = Account::new(0);
+        let mut account_builder = AccountBuilder::new(0);
         if let Some(client_options) = options {
             account_builder = account_builder.with_client_options(client_options);
         }
         Ok(AccountHandle::new(account_builder.finish()?))
     }
     // can create_account be merged into get_account?
-    pub async fn get_account<I: Into<AccountIdentifier>>(
-        &self,
-        identifier: I,
-    ) -> crate::Result<AccountHandle> {
+    pub async fn get_account<I: Into<AccountIdentifier>>(&self, identifier: I) -> crate::Result<AccountHandle> {
         // create account so it compiles
-        let account_builder = Account::new(0);
+        let account_builder = AccountBuilder::new(0);
         Ok(AccountHandle::new(account_builder.finish()?))
     }
     pub async fn get_accounts(&self) -> crate::Result<Vec<AccountHandle>> {
@@ -115,32 +108,20 @@ impl AccountManager {
         Ok(())
     }
 
-    //listen to all wallet events
+    // listen to all wallet events
     // pub fn listen() -> crate::Result<(Sender<WalletEvent>, Receiver<WalletEvent>)> {}
 
-    pub async fn store_mnemonic(
-        &self,
-        signer_type: SignerType,
-        mnemonic: Option<String>,
-    ) -> crate::Result<()> {
+    pub async fn store_mnemonic(&self, signer_type: SignerType, mnemonic: Option<String>) -> crate::Result<()> {
         Ok(())
     }
 
     // storage feature
     #[cfg(feature = "storage")]
-    pub async fn backup<P: AsRef<Path>>(
-        &self,
-        destination: P,
-        stronghold_password: String,
-    ) -> crate::Result<()> {
+    pub async fn backup<P: AsRef<Path>>(&self, destination: P, stronghold_password: String) -> crate::Result<()> {
         Ok(())
     }
     #[cfg(feature = "storage")]
-    pub async fn restore_backup<S: AsRef<Path>>(
-        &self,
-        source: S,
-        stronghold_password: String,
-    ) -> crate::Result<()> {
+    pub async fn restore_backup<S: AsRef<Path>>(&self, source: S, stronghold_password: String) -> crate::Result<()> {
         Ok(())
     }
     #[cfg(feature = "storage")]

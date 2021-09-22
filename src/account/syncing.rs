@@ -54,14 +54,8 @@ pub async fn sync(account: &Account, options: SyncOptions) -> crate::Result<Acco
     // }.await?;
     // only when actively called or also in the background syncing?
     // consolidate_outputs().await?;
-    log::debug!(
-        "[SYNC] finished syncing in {:.2?}",
-        syc_start_time.elapsed()
-    );
-    Ok(AccountBalance {
-        total: 0,
-        available: 0,
-    })
+    log::debug!("[SYNC] finished syncing in {:.2?}", syc_start_time.elapsed());
+    Ok(AccountBalance { total: 0, available: 0 })
 }
 async fn sync_addresses_balance(account: &Account) -> crate::Result<Vec<Address>> {
     Ok(vec![])

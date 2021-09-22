@@ -1,16 +1,18 @@
-use crate::account::input_selection::select_inputs;
-use crate::account::types::AddressWrapper;
-use crate::account::types::Output;
-use crate::account::types::OutputKind;
-use crate::account::Account;
+use crate::account::{
+    input_selection::select_inputs,
+    types::{AddressWrapper, Output, OutputKind},
+    Account,
+};
 
-use iota_client::bee_message::output::OutputId;
-use iota_client::bee_message::payload::indexation::IndexationPayload;
-use iota_client::bee_message::payload::transaction::Essence;
-use iota_client::bee_message::payload::transaction::RegularEssence;
-use iota_client::bee_message::payload::transaction::TransactionPayload;
-use iota_client::bee_message::payload::Payload;
-use iota_client::bee_message::MessageId;
+use iota_client::bee_message::{
+    output::OutputId,
+    payload::{
+        indexation::IndexationPayload,
+        transaction::{Essence, RegularEssence, TransactionPayload},
+        Payload,
+    },
+    MessageId,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -62,11 +64,7 @@ pub async fn send(
     let amount = outputs.iter().map(|x| x.amount).sum();
     let custom_inputs: Option<Vec<OutputId>> = {
         if let Some(options) = options.clone() {
-            if let Some(outputs) = options.custom_inputs {
-                Some(outputs)
-            } else {
-                None
-            }
+            options.custom_inputs
         } else {
             None
         }

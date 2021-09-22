@@ -60,9 +60,7 @@ pub(crate) async fn get_client(options: &ClientOptions) -> crate::Result<Arc<RwL
                     client_builder = client_builder.with_node_auth(
                         node.url.as_str(),
                         auth.jwt.clone(),
-                        auth.basic_auth_name_pwd
-                            .as_ref()
-                            .map(|(ref x, ref y)| (&x[..], &y[..])),
+                        auth.basic_auth_name_pwd.as_ref().map(|(ref x, ref y)| (&x[..], &y[..])),
                     )?;
                 } else {
                     // safe to unwrap since we're sure we have valid URLs
@@ -77,9 +75,7 @@ pub(crate) async fn get_client(options: &ClientOptions) -> crate::Result<Arc<RwL
                     client_builder = client_builder.with_primary_node(
                         primary_node.url.as_str(),
                         auth.jwt.clone(),
-                        auth.basic_auth_name_pwd
-                            .as_ref()
-                            .map(|(ref x, ref y)| (&x[..], &y[..])),
+                        auth.basic_auth_name_pwd.as_ref().map(|(ref x, ref y)| (&x[..], &y[..])),
                     )?;
                 } else {
                     // safe to unwrap since we're sure we have valid URLs
@@ -96,9 +92,7 @@ pub(crate) async fn get_client(options: &ClientOptions) -> crate::Result<Arc<RwL
                     client_builder = client_builder.with_primary_pow_node(
                         primary_pow_node.url.as_str(),
                         auth.jwt.clone(),
-                        auth.basic_auth_name_pwd
-                            .as_ref()
-                            .map(|(ref x, ref y)| (&x[..], &y[..])),
+                        auth.basic_auth_name_pwd.as_ref().map(|(ref x, ref y)| (&x[..], &y[..])),
                     )?;
                 } else {
                     // safe to unwrap since we're sure we have valid URLs
@@ -212,15 +206,13 @@ impl ClientOptionsBuilder {
 
     /// Sets the primary node.
     pub fn with_primary_node(mut self, node: &str) -> crate::Result<Self> {
-        self.primary_node
-            .replace(validate_url(Url::parse(node)?)?.into());
+        self.primary_node.replace(validate_url(Url::parse(node)?)?.into());
         Ok(self)
     }
 
     /// Sets the primary PoW node.
     pub fn with_primary_pow_node(mut self, node: &str) -> crate::Result<Self> {
-        self.primary_pow_node
-            .replace(validate_url(Url::parse(node)?)?.into());
+        self.primary_pow_node.replace(validate_url(Url::parse(node)?)?.into());
         Ok(self)
     }
 
@@ -235,8 +227,7 @@ impl ClientOptionsBuilder {
             url: validate_url(Url::parse(node)?)?,
             auth: NodeAuth {
                 jwt: jwt.map(|r| r.to_string()),
-                basic_auth_name_pwd: basic_auth_name_pwd
-                    .map(|(l, r)| (l.to_string(), r.to_string())),
+                basic_auth_name_pwd: basic_auth_name_pwd.map(|(l, r)| (l.to_string(), r.to_string())),
             }
             .into(),
             disabled: false,
@@ -255,8 +246,7 @@ impl ClientOptionsBuilder {
             url: validate_url(Url::parse(node)?)?,
             auth: NodeAuth {
                 jwt: jwt.map(|r| r.to_string()),
-                basic_auth_name_pwd: basic_auth_name_pwd
-                    .map(|(l, r)| (l.to_string(), r.to_string())),
+                basic_auth_name_pwd: basic_auth_name_pwd.map(|(l, r)| (l.to_string(), r.to_string())),
             }
             .into(),
             disabled: false,
@@ -279,12 +269,8 @@ impl ClientOptionsBuilder {
     /// ```
     pub fn with_nodes(mut self, nodes: &[&str]) -> crate::Result<Self> {
         let nodes_urls = convert_urls(nodes)?;
-        self.nodes.extend(
-            nodes_urls
-                .into_iter()
-                .map(|u| u.into())
-                .collect::<Vec<Node>>(),
-        );
+        self.nodes
+            .extend(nodes_urls.into_iter().map(|u| u.into()).collect::<Vec<Node>>());
         Ok(self)
     }
 
@@ -305,8 +291,7 @@ impl ClientOptionsBuilder {
             url: validate_url(Url::parse(node)?)?,
             auth: NodeAuth {
                 jwt: jwt.map(|r| r.to_string()),
-                basic_auth_name_pwd: basic_auth_name_pwd
-                    .map(|(l, r)| (l.to_string(), r.to_string())),
+                basic_auth_name_pwd: basic_auth_name_pwd.map(|(l, r)| (l.to_string(), r.to_string())),
             }
             .into(),
             disabled: false,
@@ -637,8 +622,8 @@ mod tests {
 
     #[test]
     fn primary_node_valid_url() {
-        let builder_res = ClientOptionsBuilder::new()
-            .with_primary_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe");
+        let builder_res =
+            ClientOptionsBuilder::new().with_primary_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe");
         assert!(builder_res.is_ok());
     }
 
@@ -649,8 +634,8 @@ mod tests {
     }
     #[test]
     fn primary_pow_node_valid_url() {
-        let builder_res = ClientOptionsBuilder::new()
-            .with_primary_pow_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe");
+        let builder_res =
+            ClientOptionsBuilder::new().with_primary_pow_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe");
         assert!(builder_res.is_ok());
     }
 
@@ -662,8 +647,7 @@ mod tests {
 
     #[test]
     fn single_node_valid_url() {
-        let builder_res =
-            ClientOptionsBuilder::new().with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe");
+        let builder_res = ClientOptionsBuilder::new().with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe");
         assert!(builder_res.is_ok());
     }
 
@@ -675,8 +659,7 @@ mod tests {
 
     #[test]
     fn multi_node_valid_url() {
-        let builder_res = ClientOptionsBuilder::new()
-            .with_nodes(&["https://api.lb-0.h.chrysalis-devnet.iota.cafe"]);
+        let builder_res = ClientOptionsBuilder::new().with_nodes(&["https://api.lb-0.h.chrysalis-devnet.iota.cafe"]);
         assert!(builder_res.is_ok());
     }
 
@@ -688,29 +671,20 @@ mod tests {
 
     #[test]
     fn multi_node_empty() {
-        let builder_res = ClientOptionsBuilder::new()
-            .with_nodes(&[])
-            .unwrap()
-            .finish();
+        let builder_res = ClientOptionsBuilder::new().with_nodes(&[]).unwrap().finish();
         assert!(builder_res.is_ok());
     }
 
     #[test]
     fn network_node_empty() {
-        let builder_res = ClientOptionsBuilder::new()
-            .with_network("testnet2")
-            .finish();
+        let builder_res = ClientOptionsBuilder::new().with_network("testnet2").finish();
         assert!(builder_res.is_ok());
     }
 
     #[test]
     fn single_node() {
         let node = "https://api.lb-0.h.chrysalis-devnet.iota.cafe";
-        let client = ClientOptionsBuilder::new()
-            .with_node(node)
-            .unwrap()
-            .finish()
-            .unwrap();
+        let client = ClientOptionsBuilder::new().with_node(node).unwrap().finish().unwrap();
         assert_eq!(
             client.nodes(),
             &super::convert_urls(&[node])

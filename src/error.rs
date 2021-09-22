@@ -77,9 +77,7 @@ pub enum Error {
     #[error("can't delete account: account has history or balance")]
     AccountNotEmpty,
     /// Latest account is empty (doesn't have history and balance) - can't create account.
-    #[error(
-        "can't create accounts when the latest account doesn't have message history and balance"
-    )]
+    #[error("can't create accounts when the latest account doesn't have message history and balance")]
     LatestAccountIsEmpty,
     /// Account not found
     #[error("account not found")]
@@ -256,12 +254,8 @@ impl From<iota_ledger::api::errors::APIError> for Error {
     fn from(error: iota_ledger::api::errors::APIError) -> Self {
         log::info!("ledger error: {}", error);
         match error {
-            iota_ledger::api::errors::APIError::SecurityStatusNotSatisfied => {
-                Error::LedgerDongleLocked
-            }
-            iota_ledger::api::errors::APIError::ConditionsOfUseNotSatisfied => {
-                Error::LedgerDeniedByUser
-            }
+            iota_ledger::api::errors::APIError::SecurityStatusNotSatisfied => Error::LedgerDongleLocked,
+            iota_ledger::api::errors::APIError::ConditionsOfUseNotSatisfied => Error::LedgerDeniedByUser,
             iota_ledger::api::errors::APIError::TransportError => Error::LedgerDeviceNotFound,
             iota_ledger::api::errors::APIError::EssenceTooLarge => Error::LedgerEssenceTooLarge,
             _ => Error::LedgerMiscError,
@@ -293,34 +287,20 @@ impl serde::Serialize for Error {
             Self::ClientError(_) => serialize_variant(self, serializer, "ClientError"),
             Self::UrlError(_) => serialize_variant(self, serializer, "UrlError"),
             Self::MessageNotFound => serialize_variant(self, serializer, "MessageNotFound"),
-            Self::InvalidMessageIdLength => {
-                serialize_variant(self, serializer, "InvalidMessageIdLength")
-            }
+            Self::InvalidMessageIdLength => serialize_variant(self, serializer, "InvalidMessageIdLength"),
             Self::InvalidAddress => serialize_variant(self, serializer, "InvalidAddress"),
-            Self::InvalidAddressLength => {
-                serialize_variant(self, serializer, "InvalidAddressLength")
-            }
+            Self::InvalidAddressLength => serialize_variant(self, serializer, "InvalidAddressLength"),
             Self::StorageDoesntExist => serialize_variant(self, serializer, "StorageDoesntExist"),
-            Self::InsufficientFunds(_, _) => {
-                serialize_variant(self, serializer, "InsufficientFunds")
-            }
+            Self::InsufficientFunds(_, _) => serialize_variant(self, serializer, "InsufficientFunds"),
             Self::AccountNotEmpty => serialize_variant(self, serializer, "AccountNotEmpty"),
-            Self::LatestAccountIsEmpty => {
-                serialize_variant(self, serializer, "LatestAccountIsEmpty")
-            }
+            Self::LatestAccountIsEmpty => serialize_variant(self, serializer, "LatestAccountIsEmpty"),
             Self::RecordNotFound => serialize_variant(self, serializer, "RecordNotFound"),
-            Self::InvalidRemainderValueAddress => {
-                serialize_variant(self, serializer, "InvalidRemainderValueAddress")
-            }
+            Self::InvalidRemainderValueAddress => serialize_variant(self, serializer, "InvalidRemainderValueAddress"),
             Self::Storage(_) => serialize_variant(self, serializer, "Storage"),
             Self::Panic(_) => serialize_variant(self, serializer, "Panic"),
             Self::InvalidMessageId => serialize_variant(self, serializer, "InvalidMessageId"),
-            Self::InvalidTransactionId => {
-                serialize_variant(self, serializer, "InvalidTransactionId")
-            }
-            Self::AddressBuildRequiredField(_) => {
-                serialize_variant(self, serializer, "AddressBuildRequiredField")
-            }
+            Self::InvalidTransactionId => serialize_variant(self, serializer, "InvalidTransactionId"),
+            Self::AddressBuildRequiredField(_) => serialize_variant(self, serializer, "AddressBuildRequiredField"),
             Self::AccountInitialiseRequiredField(_) => {
                 serialize_variant(self, serializer, "AccountInitialiseRequiredField")
             }
@@ -328,19 +308,13 @@ impl serde::Serialize for Error {
             Self::MnemonicEncode(_) => serialize_variant(self, serializer, "MnemonicEncode"),
             Self::InvalidMnemonic(_) => serialize_variant(self, serializer, "InvalidMnemonic"),
             Self::InvalidBackupFile => serialize_variant(self, serializer, "InvalidBackupFile"),
-            Self::InvalidBackupDestination => {
-                serialize_variant(self, serializer, "InvalidBackupDestination")
-            }
+            Self::InvalidBackupDestination => serialize_variant(self, serializer, "InvalidBackupDestination"),
             Self::StorageExists => serialize_variant(self, serializer, "StorageExists"),
-            Self::StorageAdapterNotSet(_) => {
-                serialize_variant(self, serializer, "StorageAdapterNotSet")
-            }
+            Self::StorageAdapterNotSet(_) => serialize_variant(self, serializer, "StorageAdapterNotSet"),
             Self::RecordDecrypt(_) => serialize_variant(self, serializer, "RecordDecrypt"),
             Self::RecordEncrypt(_) => serialize_variant(self, serializer, "RecordEncrypt"),
             Self::StorageIsEncrypted => serialize_variant(self, serializer, "StorageIsEncrypted"),
-            Self::CannotUseIndexIdentifier => {
-                serialize_variant(self, serializer, "CannotUseIndexIdentifier")
-            }
+            Self::CannotUseIndexIdentifier => serialize_variant(self, serializer, "CannotUseIndexIdentifier"),
             Self::NoLedgerSignerError => serialize_variant(self, serializer, "NoLedgerSignerError"),
             #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
             Self::LedgerMiscError => serialize_variant(self, serializer, "LedgerMiscError"),
@@ -349,36 +323,22 @@ impl serde::Serialize for Error {
             #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
             Self::LedgerDeniedByUser => serialize_variant(self, serializer, "LedgerDeniedByUser"),
             #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
-            Self::LedgerDeviceNotFound => {
-                serialize_variant(self, serializer, "LedgerDeviceNotFound")
-            }
+            Self::LedgerDeviceNotFound => serialize_variant(self, serializer, "LedgerDeviceNotFound"),
             #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
-            Self::LedgerEssenceTooLarge => {
-                serialize_variant(self, serializer, "LedgerEssenceTooLarge")
-            }
+            Self::LedgerEssenceTooLarge => serialize_variant(self, serializer, "LedgerEssenceTooLarge"),
             #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
             Self::LedgerNetMismatch => serialize_variant(self, serializer, "LedgerNetMismatch"),
             #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
-            Self::LedgerMnemonicMismatch => {
-                serialize_variant(self, serializer, "LedgerMnemonicMismatch")
-            }
-            Self::AccountAliasAlreadyExists => {
-                serialize_variant(self, serializer, "AccountAliasAlreadyExists")
-            }
+            Self::LedgerMnemonicMismatch => serialize_variant(self, serializer, "LedgerMnemonicMismatch"),
+            Self::AccountAliasAlreadyExists => serialize_variant(self, serializer, "AccountAliasAlreadyExists"),
             Self::DustError(_) => serialize_variant(self, serializer, "DustError"),
             Self::LeavingDustError(_) => serialize_variant(self, serializer, "LeavingDustError"),
             Self::InvalidOutputKind(_) => serialize_variant(self, serializer, "InvalidOutputKind"),
             Self::NodesNotSynced(_) => serialize_variant(self, serializer, "NodesNotSynced"),
-            Self::FailedToGetRemainder => {
-                serialize_variant(self, serializer, "FailedToGetRemainder")
-            }
+            Self::FailedToGetRemainder => serialize_variant(self, serializer, "FailedToGetRemainder"),
             Self::TooManyOutputs(_, _) => serialize_variant(self, serializer, "TooManyOutputs"),
-            Self::ConsolidationRequired(_, _) => {
-                serialize_variant(self, serializer, "ConsolidationRequired")
-            }
-            Self::InputAddressNotFound => {
-                serialize_variant(self, serializer, "InputAddressNotFound")
-            }
+            Self::ConsolidationRequired(_, _) => serialize_variant(self, serializer, "ConsolidationRequired"),
+            Self::InputAddressNotFound => serialize_variant(self, serializer, "InputAddressNotFound"),
             Self::PoisonError => serialize_variant(self, serializer, "PoisonError"),
             Self::TaskJoinError(_) => serialize_variant(self, serializer, "TaskJoinError"),
             Self::StdThreadJoinError => serialize_variant(self, serializer, "StdThreadJoinError"),

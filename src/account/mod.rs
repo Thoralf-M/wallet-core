@@ -3,23 +3,20 @@ pub(crate) mod syncing;
 pub(crate) mod transfer;
 pub(crate) mod types;
 
-use crate::account::types::AddressWrapper;
-use crate::account::types::{AccountBalance, Output, Transaction};
-use crate::client::ClientOptions;
-use crate::client::ClientOptionsBuilder;
-use crate::signing::SignerType;
+use crate::{
+    account::types::{AccountBalance, AddressWrapper, Output, Transaction},
+    client::{ClientOptions, ClientOptionsBuilder},
+    signing::SignerType,
+};
 use syncing::SyncOptions;
 use transfer::{TransferOptions, TransferOutput};
 
 use getset::{Getters, Setters};
-use iota_client::bee_message::address::Address;
-use iota_client::bee_message::MessageId;
+use iota_client::bee_message::{address::Address, MessageId};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use std::collections::HashMap;
-use std::str::FromStr;
-use std::sync::Arc;
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 
 // Wrapper so we can lock the account during operations
 pub struct AccountHandle {
@@ -64,10 +61,7 @@ impl AccountHandle {
     }
 
     pub fn balance() -> crate::Result<AccountBalance> {
-        Ok(AccountBalance {
-            total: 0,
-            available: 0,
-        })
+        Ok(AccountBalance { total: 0, available: 0 })
     }
 
     // Should only be called from the AccountManager so all accounts use the same options
@@ -98,11 +92,6 @@ pub struct Account {
     client_options: ClientOptions,
     // sync interval, output consolidation
     account_options: AccountOptions,
-}
-impl Account {
-    pub fn new(index: usize) -> AccountBuilder {
-        AccountBuilder::new(index)
-    }
 }
 
 pub struct AccountBuilder {
@@ -149,6 +138,6 @@ impl AccountBuilder {
 pub(crate) struct AccountOptions {
     pub(crate) output_consolidation_threshold: usize,
     pub(crate) automatic_output_consolidation: bool,
-    // #[cfg(feature = "storage")]
-    // pub(crate) persist_events: bool,
+    /* #[cfg(feature = "storage")]
+     * pub(crate) persist_events: bool, */
 }

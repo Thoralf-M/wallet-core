@@ -30,9 +30,10 @@ getset = "0.1.1"
 
 
 [features]
-# default = [""]
+# only default for now, should later be replaced by stronghold since stronghold is more secure
+default = ["mnemonic"]
 # ledger-nano = ["iota-ledger"]
 # ledger-nano-simulator = ["iota-ledger"]
 # stronghold = []
-# stronghold feature in storage or both as one?
 # storage = []
+mnemonic = []
