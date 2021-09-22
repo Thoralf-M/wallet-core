@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 pub(crate) mod iota_address_serde {
-    use crate::address::AddressWrapper;
+    use crate::account::types::AddressWrapper;
     use serde::{de::Visitor, Deserializer, Serializer};
 
     pub fn serialize<S: Serializer>(
@@ -27,7 +27,7 @@ pub(crate) mod iota_address_serde {
             where
                 E: serde::de::Error,
             {
-                crate::address::parse(v).map_err(|e| serde::de::Error::custom(e.to_string()))
+                crate::account::types::parse(v).map_err(|e| serde::de::Error::custom(e.to_string()))
             }
         }
 

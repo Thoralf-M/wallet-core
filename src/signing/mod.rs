@@ -1,8 +1,13 @@
 use crate::account::Account;
-use getset::Getters;
 use iota_client::bee_message::address::Address;
-use std::fs::Path;
+use iota_client::bee_message::input::Input;
 
+use getset::Getters;
+use serde::{Deserialize, Serialize};
+
+use std::path::Path;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SignerType {
     /// Stronghold signer.
     #[cfg(feature = "stronghold")]

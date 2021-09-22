@@ -17,13 +17,13 @@ pub enum AccountIdentifier {
     Index(usize),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AccountBalance {
-    total: u64,
-    available: u64,
+    pub(crate) total: u64,
+    pub(crate) available: u64,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Output {
     pub transaction_id: TransactionId,
     pub message_id: MessageId,
@@ -34,7 +34,7 @@ pub struct Output {
     pub kind: OutputKind,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transaction {
     pub transaction: TransactionPayload,
     pub inputs: Vec<Output>,
@@ -51,9 +51,41 @@ pub struct AddressWrapper {
     pub(crate) bech32_hrp: String,
 }
 
+impl AsRef<Address> for AddressWrapper {
+    fn as_ref(&self) -> &Address {
+        &self.inner
+    }
+}
+
+impl AddressWrapper {
+    /// Create a new address wrapper.
+    pub fn new(address: Address, bech32_hrp: String) -> Self {
+        Self {
+            inner: address,
+            bech32_hrp,
+        }
+    }
+
+    /// Encodes the address as bech32.
+    pub fn to_bech32(&self) -> String {
+        self.inner.to_bech32(&self.bech32_hrp)
+    }
+
+    pub(crate) fn bech32_hrp(&self) -> &str {
+        &self.bech32_hrp
+    }
+}
+/// Parses a bech32 address string.
+pub fn parse<A: AsRef<str>>(address: A) -> crate::Result<AddressWrapper> {
+    let address = address.as_ref();
+    let mut tokens = address.split('1');
+    let hrp = tokens.next().ok_or(crate::Error::InvalidAddress)?;
+    let address = iota_client::bee_message::address::Address::try_from_bech32(address)?;
+    Ok(AddressWrapper::new(address, hrp.to_string()))
+}
+
 /// The address output kind.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-
 pub enum OutputKind {
     /// SignatureLockedSingle output.
     SignatureLockedSingle,

@@ -1,5 +1,5 @@
 use crate::account::syncing::SyncOptions;
-use crate::account::{types::AccountIdentifier, AccountHandle};
+use crate::account::{types::AccountIdentifier, Account, AccountHandle};
 use crate::client::ClientOptions;
 use crate::client::ClientOptionsBuilder;
 use crate::events::WalletEvent;
@@ -39,7 +39,7 @@ impl Default for AccountManagerBuilder {
         Self {
             storage_options: None,
             client_options: ClientOptionsBuilder::new()
-                .build()
+                .finish()
                 .expect("default client options failed"),
         }
     }
@@ -64,14 +64,24 @@ impl AccountManager {
     }
 
     pub async fn create_account(options: Option<ClientOptions>) -> crate::Result<AccountHandle> {
-        Ok()
+        // create account so it compiles
+        let mut account_builder = Account::new(0);
+        if let Some(client_options) = options {
+            account_builder = account_builder.with_client_options(client_options);
+        }
+        Ok(AccountHandle::new(account_builder.finish()?))
     }
     // can create_account be merged into get_account?
     pub async fn get_account(
         identifier: AccountIdentifier,
         options: Option<ClientOptions>,
     ) -> crate::Result<AccountHandle> {
-        Ok()
+        // create account so it compiles
+        let mut account_builder = Account::new(0);
+        if let Some(client_options) = options {
+            account_builder = account_builder.with_client_options(client_options);
+        }
+        Ok(AccountHandle::new(account_builder.finish()?))
     }
     pub async fn get_accounts() -> crate::Result<Vec<AccountHandle>> {
         Ok(vec![])
