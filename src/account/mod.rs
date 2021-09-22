@@ -8,6 +8,7 @@ use crate::account::types::{AccountBalance, Output, Transaction};
 use crate::client::ClientOptions;
 use crate::client::ClientOptionsBuilder;
 use crate::signing::SignerType;
+use syncing::SyncOptions;
 use transfer::{TransferOptions, TransferOutput};
 
 use getset::{Getters, Setters};
@@ -32,9 +33,9 @@ impl AccountHandle {
         }
     }
 
-    pub async fn sync(&self, options: syncing::SyncOptions) -> crate::Result<AccountBalance> {
+    pub async fn sync(&self, options: Option<SyncOptions>) -> crate::Result<AccountBalance> {
         let account = self.account.write().await;
-        syncing::sync(&account, options).await
+        syncing::sync(&account, options.unwrap_or_default()).await
     }
 
     async fn consolidate_outputs(account: &Account) -> crate::Result<Vec<Transaction>> {

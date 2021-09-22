@@ -19,6 +19,10 @@ pub enum SignerType {
     /// Ledger Speculos Simulator
     #[cfg(feature = "ledger-nano-simulator")]
     LedgerNanoSimulator,
+    /// Mnemonic, not recommended since it's not as secure as Stronghold or Ledger
+    // feature commented for testing
+    // #[cfg(feature = "mnemonic")]
+    Mnemonic,
     /// Custom signer with its identifier.
     Custom(String),
 }

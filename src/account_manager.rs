@@ -50,6 +50,12 @@ impl AccountManagerBuilder {
     pub fn new() -> Self {
         Default::default()
     }
+    pub async fn finish(self) -> crate::Result<AccountManager> {
+        Ok(AccountManager {
+            accounts: Arc::new(RwLock::new(Vec::new())),
+            background_syncing_enabled: Arc::new(AtomicBool::new(true)),
+        })
+    }
 }
 
 pub struct AccountManager {
@@ -63,17 +69,8 @@ impl AccountManager {
         AccountManagerBuilder::new()
     }
 
-    pub async fn create_account(options: Option<ClientOptions>) -> crate::Result<AccountHandle> {
-        // create account so it compiles
-        let mut account_builder = Account::new(0);
-        if let Some(client_options) = options {
-            account_builder = account_builder.with_client_options(client_options);
-        }
-        Ok(AccountHandle::new(account_builder.finish()?))
-    }
-    // can create_account be merged into get_account?
-    pub async fn get_account(
-        identifier: AccountIdentifier,
+    pub async fn create_account(
+        &self,
         options: Option<ClientOptions>,
     ) -> crate::Result<AccountHandle> {
         // create account so it compiles
@@ -83,28 +80,38 @@ impl AccountManager {
         }
         Ok(AccountHandle::new(account_builder.finish()?))
     }
-    pub async fn get_accounts() -> crate::Result<Vec<AccountHandle>> {
+    // can create_account be merged into get_account?
+    pub async fn get_account<I: Into<AccountIdentifier>>(
+        &self,
+        identifier: I,
+    ) -> crate::Result<AccountHandle> {
+        // create account so it compiles
+        let account_builder = Account::new(0);
+        Ok(AccountHandle::new(account_builder.finish()?))
+    }
+    pub async fn get_accounts(&self) -> crate::Result<Vec<AccountHandle>> {
         Ok(vec![])
     }
-    pub async fn delete_account(identifier: AccountIdentifier) -> crate::Result<()> {
+    pub async fn delete_account(&self, identifier: AccountIdentifier) -> crate::Result<()> {
         Ok(())
     }
     // search balance, recovery from mnemonic or balance finder
     pub async fn search_accounts(
+        &self,
         addresses_per_account: usize,
         account_start_index: usize,
     ) -> crate::Result<Vec<AccountHandle>> {
         Ok(vec![])
     }
 
-    pub async fn set_client_options(options: ClientOptions) -> crate::Result<()> {
+    pub async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
         Ok(())
     }
 
-    pub fn start_background_syncing(options: SyncOptions) -> crate::Result<()> {
+    pub fn start_background_syncing(&self, options: SyncOptions) -> crate::Result<()> {
         Ok(())
     }
-    pub fn stop_background_syncing() -> crate::Result<()> {
+    pub fn stop_background_syncing(&self) -> crate::Result<()> {
         Ok(())
     }
 
@@ -136,7 +143,8 @@ impl AccountManager {
     ) -> crate::Result<()> {
         Ok(())
     }
-    pub async fn delete_storage(self) -> crate::Result<()> {
+    #[cfg(feature = "storage")]
+    pub async fn delete_storage(&self) -> crate::Result<()> {
         Ok(())
     }
 }
