@@ -6,8 +6,6 @@
 pub mod account;
 /// The account manager module.
 pub mod account_manager;
-/// The account manager builder module.
-pub mod account_manager_builder;
 /// The actor interface for the library.
 // pub mod actor;
 /// The client module.

@@ -1,13 +1,15 @@
+pub(crate) mod builder;
+
 use crate::{
     account::{
         account_builder::AccountBuilder, account_handle::AccountHandle, operations::syncing::SyncOptions,
         types::AccountIdentifier,
     },
-    account_manager_builder::AccountManagerBuilder,
     client::ClientOptions,
     events::WalletEvent,
     signing::SignerType,
 };
+use builder::AccountManagerBuilder;
 
 use iota_client::Client;
 use tokio::sync::RwLock;
