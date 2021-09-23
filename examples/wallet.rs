@@ -29,6 +29,8 @@ async fn main() -> Result<()> {
             manager.store_mnemonic(SignerType::Mnemonic, None).await.unwrap();
             let client_options = ClientOptionsBuilder::new()
                 .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
+                // .with_node("http://localhost:14265")?
+                .with_node_sync_disabled()
                 .finish()
                 .unwrap();
             manager
@@ -45,14 +47,18 @@ async fn main() -> Result<()> {
 
     println!("Balance: {:?}", balance);
 
-    let accounts = manager.get_accounts().await?;
-    println!("Accounts: {:?}", accounts);
+    // let accounts = manager.get_accounts().await?;
+    // println!("Accounts: {:?}", accounts);
 
-    // let addresses = account.list_addresses().await?;
-    // println!("Addresses: {}", addresses.len());
-
-    // let address = account.generate_address().await?;
+    let address = account.generate_addresses(200).await?;
     // println!("Generated a new address: {:?}", address);
+
+    let addresses = account.list_addresses().await?;
+    println!("Addresses: {}", addresses.len());
+
+    let now = Instant::now();
+    let balance = account.sync(None).await?;
+    println!("Syncing took: {:.2?}", now.elapsed());
 
     Ok(())
 }

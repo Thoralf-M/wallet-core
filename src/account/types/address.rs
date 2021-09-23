@@ -1,8 +1,8 @@
 use getset::{Getters, Setters};
-use iota_client::bee_message::address::Address;
+use iota_client::bee_message::{address::Address, output::OutputId};
 use serde::{Deserialize, Serialize, Serializer};
 
-use std::hash::Hash;
+use std::{collections::HashSet, hash::Hash};
 
 /// An account address.
 #[derive(Debug, Getters, Setters, Clone, Deserialize)]
@@ -10,18 +10,19 @@ use std::hash::Hash;
 pub struct AccountAddress {
     /// The address.
     #[serde(with = "crate::serde::iota_address_serde")]
-    address: AddressWrapper,
+    pub(crate) address: AddressWrapper,
     /// The address key index.
     #[serde(rename = "keyIndex")]
     #[getset(set = "pub(crate)")]
-    key_index: usize,
+    pub(crate) key_index: usize,
     /// Determines if an address is a public or an internal (change) address.
     #[getset(set = "pub(crate)")]
-    internal: bool,
-    /* /// The address outputs.
-     * //make this a HashSet to store the outputs separated?
-     * #[getset(set = "pub(crate)")]
-     * pub(crate) outputs: HashMap<OutputId, AddressOutput>, */
+    pub(crate) internal: bool,
+    // /// The address outputs.
+    // //make this a HashSet to store the outputs separated? add the network id here?
+    // #[getset(set = "pub(crate)")]
+    // pub(crate) outputs: HashMap<OutputId, AddressOutput>,
+    pub(crate) outputs: HashSet<OutputId>,
 }
 
 impl Serialize for AccountAddress {

@@ -1,6 +1,7 @@
 use crate::{
     account::{
         operations::{
+            address_generation,
             syncing::{sync_account, SyncOptions},
             transfer::{send_transfer, TransferOptions, TransferOutput},
         },
@@ -29,8 +30,7 @@ impl AccountHandle {
     }
 
     pub async fn sync(&self, options: Option<SyncOptions>) -> crate::Result<AccountBalance> {
-        let account = self.account.write().await;
-        sync_account(&account, options.unwrap_or_default()).await
+        sync_account(&self, &options.unwrap_or_default()).await
     }
 
     async fn consolidate_outputs(account: &Account) -> crate::Result<Vec<Transaction>> {
@@ -50,12 +50,13 @@ impl AccountHandle {
         Ok(MessageId::from_str("")?)
     }
 
-    pub async fn generate_addresses(amount: usize) -> crate::Result<Vec<AccountAddress>> {
-        Ok(vec![])
+    pub async fn generate_addresses(&self, amount: usize) -> crate::Result<Vec<AccountAddress>> {
+        address_generation::generate_addresses(&self, amount).await
     }
 
-    pub async fn list_addresses() -> crate::Result<Vec<AccountAddress>> {
-        Ok(vec![])
+    pub async fn list_addresses(&self) -> crate::Result<Vec<AccountAddress>> {
+        let account = self.read().await;
+        Ok(account.addresses().to_vec())
     }
 
     pub fn balance() -> crate::Result<AccountBalance> {
