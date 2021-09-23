@@ -45,6 +45,9 @@ async fn main() -> Result<()> {
 
     println!("Balance: {:?}", balance);
 
+    let accounts = manager.get_accounts().await?;
+    println!("Accounts: {:?}", accounts);
+
     // let addresses = account.list_addresses().await?;
     // println!("Addresses: {}", addresses.len());
 

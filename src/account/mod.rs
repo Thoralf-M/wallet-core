@@ -1,77 +1,22 @@
-pub(crate) mod input_selection;
-pub(crate) mod syncing;
-pub(crate) mod transfer;
+pub(crate) mod account_builder;
+pub(crate) mod account_handle;
+pub(crate) mod operations;
 pub(crate) mod types;
 
 use crate::{
-    account::types::{AccountBalance, AddressWrapper, Output, Transaction},
-    client::{ClientOptions, ClientOptionsBuilder},
+    account::types::{address::AccountAddress, AccountBalance, Output, Transaction},
+    client::ClientOptions,
     signing::SignerType,
 };
-use syncing::SyncOptions;
-use transfer::{TransferOptions, TransferOutput};
 
 use getset::{Getters, Setters};
-use iota_client::bee_message::{address::Address, MessageId};
+use iota_client::bee_message::address::Address;
 use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
 
-use std::{collections::HashMap, str::FromStr, sync::Arc};
-
-// Wrapper so we can lock the account during operations
-pub struct AccountHandle {
-    account: Arc<RwLock<Account>>,
-}
-
-impl AccountHandle {
-    pub(crate) fn new(account: Account) -> Self {
-        Self {
-            account: Arc::new(RwLock::new(account)),
-        }
-    }
-
-    pub async fn sync(&self, options: Option<SyncOptions>) -> crate::Result<AccountBalance> {
-        let account = self.account.write().await;
-        syncing::sync(&account, options.unwrap_or_default()).await
-    }
-
-    async fn consolidate_outputs(account: &Account) -> crate::Result<Vec<Transaction>> {
-        Ok(vec![])
-    }
-
-    pub async fn send(
-        &self,
-        outputs: Vec<TransferOutput>,
-        options: Option<TransferOptions>,
-    ) -> crate::Result<MessageId> {
-        let account = self.account.write().await;
-        transfer::send(&account, outputs, options).await
-    }
-
-    pub async fn retry(message_id: MessageId, sync: bool) -> crate::Result<MessageId> {
-        Ok(MessageId::from_str("")?)
-    }
-
-    pub async fn generate_addresses(amount: usize) -> crate::Result<Vec<AddressWrapper>> {
-        Ok(vec![])
-    }
-
-    pub async fn list_addresses() -> crate::Result<Vec<AddressWrapper>> {
-        Ok(vec![])
-    }
-
-    pub fn balance() -> crate::Result<AccountBalance> {
-        Ok(AccountBalance { total: 0, available: 0 })
-    }
-
-    // Should only be called from the AccountManager so all accounts use the same options
-    pub(crate) async fn set_client_options(options: ClientOptions) -> crate::Result<()> {
-        Ok(())
-    }
-}
+use std::collections::HashMap;
 
 /// Account definition.
-#[derive(Debug, Setters, Serialize, Deserialize, Clone)]
+#[derive(Debug, Getters, Setters, Serialize, Deserialize, Clone)]
 #[getset(get = "pub")]
 pub struct Account {
     /// The account identifier.
@@ -84,54 +29,15 @@ pub struct Account {
     /// The account's signer type.
     #[serde(rename = "signerType")]
     signer_type: SignerType,
-    addresses: Vec<AddressWrapper>,
+    addresses: Vec<AccountAddress>,
     // stored separated from the account for performance?
     outputs: HashMap<Address, Vec<Output>>,
     // stored separated from the account for performance?
     transactions: Vec<Transaction>,
     client_options: ClientOptions,
     // sync interval, output consolidation
+    #[getset(get = "pub(crate)")]
     account_options: AccountOptions,
-}
-
-pub struct AccountBuilder {
-    index: usize,
-    client_options: Option<ClientOptions>,
-}
-impl AccountBuilder {
-    /// Create an Iota client builder
-    pub fn new(index: usize) -> Self {
-        Self {
-            index,
-            client_options: None,
-        }
-    }
-    pub fn with_client_options(mut self, options: ClientOptions) -> Self {
-        self.client_options.replace(options);
-        self
-    }
-    pub fn finish(&self) -> crate::Result<Account> {
-        Ok(Account {
-            id: self.index.to_string(),
-            index: self.index,
-            alias: self.index.to_string(),
-            signer_type: SignerType::Custom("".to_string()),
-            addresses: Vec::new(),
-            outputs: HashMap::new(),
-            transactions: Vec::new(),
-            // default options for testing
-            client_options: self.client_options.clone().unwrap_or(
-                ClientOptionsBuilder::new()
-                    .with_primary_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
-                    .finish()?,
-            ),
-            // sync interval, output consolidation
-            account_options: AccountOptions {
-                output_consolidation_threshold: 100,
-                automatic_output_consolidation: true,
-            },
-        })
-    }
 }
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]

@@ -1,11 +1,13 @@
+pub(crate) mod address;
+use address::{parse_bech32_address, AddressWrapper};
+
 use iota_client::bee_message::{
-    address::Address,
     payload::transaction::{TransactionId, TransactionPayload},
     MessageId,
 };
 use serde::{Deserialize, Deserializer, Serialize};
 
-use std::{hash::Hash, str::FromStr};
+use std::str::FromStr;
 
 const ACCOUNT_ID_PREFIX: &str = "wallet-account://";
 
@@ -39,7 +41,7 @@ impl<'de> Deserialize<'de> for AccountIdentifier {
 // When the identifier is a string id.
 impl From<&str> for AccountIdentifier {
     fn from(value: &str) -> Self {
-        if let Ok(address) = crate::account::types::parse(value) {
+        if let Ok(address) = parse_bech32_address(value) {
             Self::Address(address)
         } else if value.starts_with(ACCOUNT_ID_PREFIX) {
             Self::Id(value.to_string())
@@ -93,46 +95,6 @@ pub struct Transaction {
     pub confirmed: bool,
     // network id to ignore outputs when set_client_options is used to switch to another network
     pub network_id: String,
-}
-
-/// An address and its network type.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct AddressWrapper {
-    pub(crate) inner: Address,
-    pub(crate) bech32_hrp: String,
-}
-
-impl AsRef<Address> for AddressWrapper {
-    fn as_ref(&self) -> &Address {
-        &self.inner
-    }
-}
-
-impl AddressWrapper {
-    /// Create a new address wrapper.
-    pub fn new(address: Address, bech32_hrp: String) -> Self {
-        Self {
-            inner: address,
-            bech32_hrp,
-        }
-    }
-
-    /// Encodes the address as bech32.
-    pub fn to_bech32(&self) -> String {
-        self.inner.to_bech32(&self.bech32_hrp)
-    }
-
-    pub(crate) fn bech32_hrp(&self) -> &str {
-        &self.bech32_hrp
-    }
-}
-/// Parses a bech32 address string.
-pub fn parse<A: AsRef<str>>(address: A) -> crate::Result<AddressWrapper> {
-    let address = address.as_ref();
-    let mut tokens = address.split('1');
-    let hrp = tokens.next().ok_or(crate::Error::InvalidAddress)?;
-    let address = iota_client::bee_message::address::Address::try_from_bech32(address)?;
-    Ok(AddressWrapper::new(address, hrp.to_string()))
 }
 
 /// The address output kind.

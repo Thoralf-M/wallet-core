@@ -1,6 +1,6 @@
 use crate::account::{
-    input_selection::select_inputs,
-    types::{AddressWrapper, Output, OutputKind},
+    operations::input_selection::select_inputs,
+    types::{address::AddressWrapper, Output, OutputKind},
     Account,
 };
 
@@ -23,6 +23,7 @@ pub struct TransferOutput {
     output_kind: Option<OutputKind>,
 }
 
+#[allow(clippy::enum_variant_names)]
 /// The strategy to use for the remainder value management when sending funds.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "strategy", content = "value")]
@@ -55,7 +56,7 @@ pub struct TransferOptions {
     custom_inputs: Option<Vec<OutputId>>,
 }
 
-pub async fn send(
+pub async fn send_transfer(
     account: &Account,
     outputs: Vec<TransferOutput>,
     options: Option<TransferOptions>,

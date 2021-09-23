@@ -41,7 +41,7 @@ fn default_gap_limit() -> usize {
     0
 }
 
-pub async fn sync(account: &Account, options: SyncOptions) -> crate::Result<AccountBalance> {
+pub async fn sync_account(account: &Account, options: SyncOptions) -> crate::Result<AccountBalance> {
     log::debug!("[SYNC] start syncing");
     let syc_start_time = Instant::now();
     // ignore outputs from other networks

@@ -1,6 +1,10 @@
 use crate::{
-    account::{syncing::SyncOptions, types::AccountIdentifier, Account, AccountBuilder, AccountHandle},
-    client::{ClientOptions, ClientOptionsBuilder},
+    account::{
+        account_builder::AccountBuilder, account_handle::AccountHandle, operations::syncing::SyncOptions,
+        types::AccountIdentifier,
+    },
+    account_manager_builder::AccountManagerBuilder,
+    client::ClientOptions,
     events::WalletEvent,
     signing::SignerType,
 };
@@ -8,58 +12,12 @@ use crate::{
 use iota_client::Client;
 use tokio::sync::RwLock;
 
-use std::{
-    path::{Path, PathBuf},
-    sync::{
-        atomic::AtomicBool,
-        mpsc::{Receiver, Sender},
-        Arc,
-    },
-};
-
-pub fn generate_mnemonic() -> crate::Result<String> {
-    Ok(Client::generate_mnemonic()?)
-}
-
-pub struct AccountManagerBuilder {
-    storage_options: Option<StorageOptions>,
-    client_options: ClientOptions,
-}
-
-pub struct StorageOptions {
-    storage_folder: PathBuf,
-    storage_file_name: Option<String>,
-    // storage: ManagerStorage,
-    storage_encryption_key: Option<[u8; 32]>,
-}
-
-impl Default for AccountManagerBuilder {
-    fn default() -> Self {
-        Self {
-            storage_options: None,
-            client_options: ClientOptionsBuilder::new()
-                .finish()
-                .expect("default client options failed"),
-        }
-    }
-}
-
-impl AccountManagerBuilder {
-    /// Initialises a new instance of the account manager builder with the default storage adapter.
-    pub fn new() -> Self {
-        Default::default()
-    }
-    pub async fn finish(self) -> crate::Result<AccountManager> {
-        Ok(AccountManager {
-            accounts: Arc::new(RwLock::new(Vec::new())),
-            background_syncing_enabled: Arc::new(AtomicBool::new(true)),
-        })
-    }
-}
+use std::sync::{atomic::AtomicBool, Arc};
 
 pub struct AccountManager {
-    accounts: Arc<RwLock<Vec<AccountHandle>>>,
-    background_syncing_enabled: Arc<AtomicBool>,
+    // should we use a hashmap instead of a vec like in wallet.rs?
+    pub(crate) accounts: Arc<RwLock<Vec<AccountHandle>>>,
+    pub(crate) background_syncing_enabled: Arc<AtomicBool>,
 }
 
 impl AccountManager {
@@ -69,27 +27,67 @@ impl AccountManager {
     }
 
     pub async fn create_account(&self, options: Option<ClientOptions>) -> crate::Result<AccountHandle> {
+        log::debug!("creating account");
         // create account so it compiles
         let mut account_builder = AccountBuilder::new(0);
         if let Some(client_options) = options {
             account_builder = account_builder.with_client_options(client_options);
         }
-        Ok(AccountHandle::new(account_builder.finish()?))
+        let account_handle = AccountHandle::new(account_builder.finish()?);
+        let mut accounts = self.accounts.write().await;
+        accounts.push(account_handle.clone());
+        Ok(account_handle)
     }
     // can create_account be merged into get_account?
     pub async fn get_account<I: Into<AccountIdentifier>>(&self, identifier: I) -> crate::Result<AccountHandle> {
-        // create account so it compiles
-        let account_builder = AccountBuilder::new(0);
-        Ok(AccountHandle::new(account_builder.finish()?))
+        log::debug!("get account");
+        let account_id = identifier.into();
+        let accounts = self.accounts.read().await;
+
+        match account_id {
+            AccountIdentifier::Id(id) => {
+                for account_handle in accounts.iter() {
+                    let account = account_handle.read().await;
+                    if account.id() == &id {
+                        return Ok(account_handle.clone());
+                    }
+                }
+            }
+            AccountIdentifier::Index(index) => {
+                for account_handle in accounts.iter() {
+                    let account = account_handle.read().await;
+                    if account.index() == &index {
+                        return Ok(account_handle.clone());
+                    }
+                }
+            }
+            AccountIdentifier::Alias(alias) => {
+                for account_handle in accounts.iter() {
+                    let account = account_handle.read().await;
+                    if account.alias() == &alias {
+                        return Ok(account_handle.clone());
+                    }
+                }
+            }
+            AccountIdentifier::Address(address) => {
+                for account_handle in accounts.iter() {
+                    let account = account_handle.read().await;
+                    if account.addresses().iter().any(|a| a.address() == &address) {
+                        return Ok(account_handle.clone());
+                    }
+                }
+            }
+        };
+        Err(crate::Error::AccountNotFound)
     }
     pub async fn get_accounts(&self) -> crate::Result<Vec<AccountHandle>> {
-        Ok(vec![])
+        Ok(self.accounts.read().await.clone())
     }
     pub async fn delete_account(&self, identifier: AccountIdentifier) -> crate::Result<()> {
         Ok(())
     }
     // search balance, recovery from mnemonic or balance finder
-    pub async fn search_accounts(
+    pub async fn search_balance(
         &self,
         addresses_per_account: usize,
         account_start_index: usize,
@@ -110,6 +108,10 @@ impl AccountManager {
 
     // listen to all wallet events
     // pub fn listen() -> crate::Result<(Sender<WalletEvent>, Receiver<WalletEvent>)> {}
+
+    pub fn generate_mnemonic(&self) -> crate::Result<String> {
+        Ok(Client::generate_mnemonic()?)
+    }
 
     pub async fn store_mnemonic(&self, signer_type: SignerType, mnemonic: Option<String>) -> crate::Result<()> {
         Ok(())

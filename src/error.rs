@@ -81,7 +81,7 @@ pub enum Error {
     LatestAccountIsEmpty,
     /// Account not found
     #[error("account not found")]
-    RecordNotFound,
+    AccountNotFound,
     /// invalid remainder value target address defined on `RemainderValueStrategy`.
     /// the address must belong to the account.
     #[error("the remainder value address doesn't belong to the account")]
@@ -294,7 +294,7 @@ impl serde::Serialize for Error {
             Self::InsufficientFunds(_, _) => serialize_variant(self, serializer, "InsufficientFunds"),
             Self::AccountNotEmpty => serialize_variant(self, serializer, "AccountNotEmpty"),
             Self::LatestAccountIsEmpty => serialize_variant(self, serializer, "LatestAccountIsEmpty"),
-            Self::RecordNotFound => serialize_variant(self, serializer, "RecordNotFound"),
+            Self::AccountNotFound => serialize_variant(self, serializer, "RecordNotFound"),
             Self::InvalidRemainderValueAddress => serialize_variant(self, serializer, "InvalidRemainderValueAddress"),
             Self::Storage(_) => serialize_variant(self, serializer, "Storage"),
             Self::Panic(_) => serialize_variant(self, serializer, "Panic"),

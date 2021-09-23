@@ -1,4 +1,4 @@
-use crate::account::types::AddressWrapper;
+use crate::account::types::address::AddressWrapper;
 
 use getset::Getters;
 use iota_client::bee_message::payload::transaction::TransactionId;
