@@ -29,6 +29,9 @@ async fn main() -> Result<()> {
             manager.store_mnemonic(SignerType::Mnemonic, None).await.unwrap();
             let client_options = ClientOptionsBuilder::new()
                 .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
+                .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
+                .with_node("https://api.thin-hornet-1.h.chrysalis-devnet.iota.cafe")?
+                // .with_node("https://chrysalis-nodes.iota.org/")?
                 // .with_node("http://localhost:14265")?
                 .with_node_sync_disabled()
                 .finish()
