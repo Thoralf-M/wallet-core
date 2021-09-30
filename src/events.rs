@@ -72,7 +72,7 @@ pub struct AddressConsolidationNeeded {
     #[serde(rename = "accountId")]
     pub account_id: String,
     /// The associated address.
-    #[serde(with = "crate::serde::iota_address_serde")]
+    #[serde(with = "crate::account::types::address_serde")]
     pub address: AddressWrapper,
 }
 

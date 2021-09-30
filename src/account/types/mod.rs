@@ -1,6 +1,8 @@
 pub(crate) mod address;
+pub(crate) mod address_serde;
 use address::{parse_bech32_address, AddressWrapper};
 
+use address_serde::{deserialize, serialize};
 use iota_client::bee_message::{
     payload::transaction::{TransactionId, TransactionPayload},
     MessageId,
@@ -16,7 +18,7 @@ const ACCOUNT_ID_PREFIX: &str = "wallet-account://";
 #[serde(untagged)]
 pub enum AccountIdentifier {
     /// An address identifier.
-    #[serde(with = "crate::serde::iota_address_serde")]
+    #[serde(with = "crate::account::types::address_serde")]
     Address(AddressWrapper),
     // SHA-256 hash of the first address on the seed (m/44'/0'/0'/0'/0'). Required for referencing a seed in
     // Stronghold. The id should be provided by Stronghold. can we do the hashing only during interaction with

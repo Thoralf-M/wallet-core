@@ -9,7 +9,7 @@ use std::{collections::HashSet, hash::Hash};
 #[getset(get = "pub")]
 pub struct AccountAddress {
     /// The address.
-    #[serde(with = "crate::serde::iota_address_serde")]
+    #[serde(with = "crate::account::types::address_serde")]
     pub(crate) address: AddressWrapper,
     /// The address key index.
     #[serde(rename = "keyIndex")]
