@@ -51,7 +51,7 @@ async fn main() -> Result<()> {
     // let accounts = manager.get_accounts().await?;
     // println!("Accounts: {:?}", accounts);
 
-    let _address = account.generate_addresses(5000).await?;
+    let _address = account.generate_addresses(50).await?;
     // println!("Generated a new address: {:?}", _address);
 
     let addresses = account.list_addresses().await?;
