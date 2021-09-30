@@ -1,9 +1,8 @@
-use crate::account::{handle::AccountHandle, types::address::AccountAddress, Account, AccountBalance};
+use crate::account::{handle::AccountHandle, types::address::AccountAddress, AccountBalance};
 use iota_client::{
     bee_message::{
-        address::Address,
         input::UtxoInput,
-        output::{Output, OutputId},
+        output::{OutputId},
     },
     bee_rest_api::types::responses::OutputResponse,
 };

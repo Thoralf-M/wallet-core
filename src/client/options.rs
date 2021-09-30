@@ -1,8 +1,6 @@
 use getset::Getters;
-use iota_client::{node_manager::validate_url, Client, ClientBuilder};
-use once_cell::sync::Lazy;
-use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
-use tokio::sync::{Mutex, RwLock};
+use iota_client::{node_manager::validate_url};
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::{
@@ -15,8 +13,6 @@ use crate::{
 use std::{
     collections::HashMap,
     hash::{Hash, Hasher},
-    str::FromStr,
-    sync::Arc,
     time::Duration,
 };
 

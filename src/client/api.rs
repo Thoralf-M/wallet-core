@@ -1,16 +1,9 @@
-use getset::Getters;
 use iota_client::{node_manager::validate_url, Client, ClientBuilder};
-use once_cell::sync::Lazy;
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
-use tokio::sync::{Mutex, RwLock};
-use url::Url;
 
 use std::{
-    collections::HashMap,
-    hash::{Hash, Hasher},
+    hash::{Hash},
     str::FromStr,
-    sync::Arc,
-    time::Duration,
 };
 
 /// Each of the node APIs the wallet uses.

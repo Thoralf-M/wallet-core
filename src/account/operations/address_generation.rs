@@ -1,7 +1,6 @@
 use crate::account::{
     handle::AccountHandle,
-    types::address::{parse_bech32_address, AccountAddress, AddressWrapper},
-    Account,
+    types::address::{parse_bech32_address, AccountAddress},
 };
 
 use iota_client::Seed;

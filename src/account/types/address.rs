@@ -1,6 +1,6 @@
 use getset::{Getters, Setters};
 use iota_client::bee_message::{address::Address, output::OutputId};
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 use std::{collections::HashSet, hash::Hash};
 

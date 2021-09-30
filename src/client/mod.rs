@@ -6,10 +6,8 @@ pub mod api;
 pub mod node;
 pub mod options;
 
-use getset::Getters;
 use iota_client::{node_manager::validate_url, Client, ClientBuilder};
 use once_cell::sync::Lazy;
-use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::{Mutex, RwLock};
 use url::Url;
 
@@ -19,10 +17,7 @@ use crate::{
 
 use std::{
     collections::HashMap,
-    hash::{Hash, Hasher},
-    str::FromStr,
     sync::Arc,
-    time::Duration,
 };
 
 type ClientInstanceMap = Arc<Mutex<HashMap<ClientOptions, Arc<RwLock<Client>>>>>;
