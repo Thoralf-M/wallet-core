@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use std::{collections::HashSet, hash::Hash};
 
 /// An account address.
-#[derive(Debug, Getters, Setters, Clone, Deserialize)]
+#[derive(Debug, Getters, Setters, Clone, Serialize, Deserialize)]
 #[getset(get = "pub")]
 pub struct AccountAddress {
     /// The address.
@@ -22,75 +22,15 @@ pub struct AccountAddress {
     // //make this a HashSet to store the outputs separated? add the network id here?
     // #[getset(set = "pub(crate)")]
     // pub(crate) outputs: HashMap<OutputId, AddressOutput>,
+    // should only hold the current unspent outputs, spent outputs can be retrieved from all outputs
     pub(crate) outputs: HashSet<OutputId>,
-}
-
-impl Serialize for AccountAddress {
-    fn serialize<S: Serializer>(&self, s: S) -> std::result::Result<S::Ok, S::Error> {
-        #[derive(Serialize)]
-        struct AddressDto<'a> {
-            #[serde(with = "crate::serde::iota_address_serde")]
-            address: &'a AddressWrapper,
-            balance: u64,
-            #[serde(rename = "keyIndex")]
-            key_index: usize,
-            internal: bool,
-            // outputs: &'a HashMap<OutputId, AddressOutput>,
-        }
-        let address = AddressDto {
-            address: &self.address,
-            balance: self.balance(),
-            key_index: self.key_index,
-            internal: self.internal,
-            // outputs: &self.outputs,
-        };
-        address.serialize(s)
-    }
-}
-
-impl AccountAddress {
-    /// Gets a new instance of the address builder.
-    // #[doc(hidden)]
-    // pub fn builder() -> AddressBuilder {
-    //     AddressBuilder::new()
-    // }
-
-    // pub(crate) fn available_outputs(&self, sent_messages: &[Message]) -> Vec<&AddressOutput> {
-    //     self.outputs
-    //         .values()
-    //         .filter(|o| !(o.is_spent || o.is_used(sent_messages)))
-    //         .collect()
-    // }
-
-    // /// Address total balance
-    // pub fn balance(&self) -> u64 {
-    //     self.outputs
-    //         .values()
-    //         .fold(0, |acc, o| acc + if o.is_spent { 0 } else { *o.amount() })
-    // }
-    /// Address total balance
-    pub fn balance(&self) -> u64 {
-        0
-    }
-
-    // pub(crate) fn available_balance(&self, sent_messages: &[Message]) -> u64 {
-    //     self.available_outputs(sent_messages)
-    //         .iter()
-    //         .fold(0, |acc, o| acc + *o.amount())
-    // }
-
-    // pub(crate) fn outputs_mut(&mut self) -> &mut HashMap<OutputId, AddressOutput> {
-    //     &mut self.outputs
-    // }
-
-    // /// Updates the Bech32 human readable part.
-    // #[doc(hidden)]
-    // pub fn set_bech32_hrp(&mut self, hrp: String) {
-    //     self.address.bech32_hrp = hrp.to_string();
-    //     for output in self.outputs.values_mut() {
-    //         output.address.bech32_hrp = hrp.to_string();
-    //     }
-    // }
+    /// Balance
+    // do we want this field? if we want to keep it, do we need to validate that the amount of the outputs matches?
+    // What happens if we don't get all outputs because of the API limit?
+    pub(crate) balance: u64,
+    // do we want this field? Could be useful if we don't store spent output ids and because of that wouldn't know if
+    // an address was used or not just by looking at it
+    pub(crate) used: bool,
 }
 
 /// An address and its network type.

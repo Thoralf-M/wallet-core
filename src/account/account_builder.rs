@@ -4,12 +4,16 @@ use crate::{
     signing::SignerType,
 };
 
-use std::collections::HashMap;
+use std::{
+    collections::{HashMap, HashSet},
+    time::Duration,
+};
 
 pub struct AccountBuilder {
     index: usize,
     client_options: Option<ClientOptions>,
 }
+
 impl AccountBuilder {
     /// Create an Iota client builder
     pub fn new(index: usize) -> Self {
@@ -29,8 +33,10 @@ impl AccountBuilder {
             alias: self.index.to_string(),
             signer_type: SignerType::Custom("".to_string()),
             addresses: Vec::new(),
+            locked_outputs: HashSet::new(),
             outputs: HashMap::new(),
-            transactions: Vec::new(),
+            transactions: HashSet::new(),
+            pending_transactions: HashSet::new(),
             // default options for testing
             client_options: self.client_options.clone().unwrap_or(
                 ClientOptionsBuilder::new()
@@ -39,6 +45,7 @@ impl AccountBuilder {
             ),
             // sync interval, output consolidation
             account_options: AccountOptions {
+                background_syncing_interval: Duration::from_secs(5),
                 output_consolidation_threshold: 100,
                 automatic_output_consolidation: true,
             },

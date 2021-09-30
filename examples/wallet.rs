@@ -45,16 +45,14 @@ async fn main() -> Result<()> {
     };
 
     let now = Instant::now();
-    let balance = account.sync(None).await?;
+    let _balance = account.sync(None).await?;
     println!("Syncing took: {:.2?}", now.elapsed());
-
-    println!("Balance: {:?}", balance);
 
     // let accounts = manager.get_accounts().await?;
     // println!("Accounts: {:?}", accounts);
 
-    let address = account.generate_addresses(200).await?;
-    // println!("Generated a new address: {:?}", address);
+    let _address = account.generate_addresses(5000).await?;
+    // println!("Generated a new address: {:?}", _address);
 
     let addresses = account.list_addresses().await?;
     println!("Addresses: {}", addresses.len());
@@ -62,6 +60,7 @@ async fn main() -> Result<()> {
     let now = Instant::now();
     let balance = account.sync(None).await?;
     println!("Syncing took: {:.2?}", now.elapsed());
+    println!("Balance: {:?}", balance);
 
     Ok(())
 }

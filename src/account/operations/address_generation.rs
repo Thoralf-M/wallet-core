@@ -35,6 +35,8 @@ pub async fn generate_addresses(account_handle: &AccountHandle, amount: usize) -
             key_index: a.0,
             internal: false,
             outputs: HashSet::new(),
+            balance: 0,
+            used: false,
         })
         .collect();
     account.addresses.extend(account_addresses.clone());

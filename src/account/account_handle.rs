@@ -30,7 +30,7 @@ impl AccountHandle {
     }
 
     pub async fn sync(&self, options: Option<SyncOptions>) -> crate::Result<AccountBalance> {
-        sync_account(&self, &options.unwrap_or_default()).await
+        sync_account(self, &options.unwrap_or_default()).await
     }
 
     async fn consolidate_outputs(account: &Account) -> crate::Result<Vec<Transaction>> {
@@ -51,7 +51,7 @@ impl AccountHandle {
     }
 
     pub async fn generate_addresses(&self, amount: usize) -> crate::Result<Vec<AccountAddress>> {
-        address_generation::generate_addresses(&self, amount).await
+        address_generation::generate_addresses(self, amount).await
     }
 
     pub async fn list_addresses(&self) -> crate::Result<Vec<AccountAddress>> {

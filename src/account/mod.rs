@@ -10,10 +10,13 @@ use crate::{
 };
 
 use getset::{Getters, Setters};
-use iota_client::bee_message::address::Address;
+use iota_client::bee_message::{address::Address, output::OutputId, payload::transaction::TransactionId};
 use serde::{Deserialize, Serialize};
 
-use std::collections::HashMap;
+use std::{
+    collections::{HashMap, HashSet},
+    time::Duration,
+};
 
 /// Account definition.
 #[derive(Debug, Getters, Setters, Serialize, Deserialize, Clone)]
@@ -30,10 +33,15 @@ pub struct Account {
     #[serde(rename = "signerType")]
     signer_type: SignerType,
     addresses: Vec<AccountAddress>,
+    // outputs used in transactions should be locked here so they don't get used again, resulting in conflicting
+    // transactions
+    locked_outputs: HashSet<OutputId>,
     // stored separated from the account for performance?
     outputs: HashMap<Address, Vec<Output>>,
-    // stored separated from the account for performance?
-    transactions: Vec<Transaction>,
+    // stored separated from the account for performance and only the transaction id here?
+    transactions: HashSet<TransactionId>,
+    // Maybe pending transactions even additionally separated?
+    pending_transactions: HashSet<TransactionId>,
     client_options: ClientOptions,
     // sync interval, output consolidation
     #[getset(get = "pub(crate)")]
@@ -42,6 +50,7 @@ pub struct Account {
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub(crate) struct AccountOptions {
+    pub(crate) background_syncing_interval: Duration,
     pub(crate) output_consolidation_threshold: usize,
     pub(crate) automatic_output_consolidation: bool,
     /* #[cfg(feature = "storage")]
