@@ -1,6 +1,6 @@
 use crate::{
     account_manager::AccountManager,
-    client::{ClientOptions, ClientOptionsBuilder},
+    client::options::{ClientOptions, ClientOptionsBuilder},
 };
 
 use tokio::sync::RwLock;

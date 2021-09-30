@@ -8,7 +8,7 @@ use crate::{
         types::{address::AccountAddress, AccountBalance, Transaction},
         Account,
     },
-    client::ClientOptions,
+    client::options::{ClientOptions},
 };
 
 use iota_client::bee_message::MessageId;

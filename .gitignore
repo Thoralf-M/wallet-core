@@ -1,2 +1,8 @@
-/target
-wallet.log
+# IDE
+**/.vscode/
+**/.idea/
+
+# Cargo
+**/out/
+**/target/
+**/wallet.log

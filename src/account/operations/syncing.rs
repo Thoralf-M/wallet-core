@@ -1,4 +1,4 @@
-use crate::account::{account_handle::AccountHandle, types::address::AccountAddress, Account, AccountBalance};
+use crate::account::{handle::AccountHandle, types::address::AccountAddress, Account, AccountBalance};
 use iota_client::{
     bee_message::{
         address::Address,

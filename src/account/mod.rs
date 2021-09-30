@@ -1,11 +1,11 @@
-pub(crate) mod account_builder;
-pub(crate) mod account_handle;
+pub(crate) mod builder;
+pub(crate) mod handle;
 pub(crate) mod operations;
 pub(crate) mod types;
 
 use crate::{
     account::types::{address::AccountAddress, AccountBalance, Output, Transaction},
-    client::ClientOptions,
+    client::options::{ClientOptions},
     signing::SignerType,
 };
 

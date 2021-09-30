@@ -1,6 +1,6 @@
 use crate::{
     account::{Account, AccountOptions},
-    client::{ClientOptions, ClientOptionsBuilder},
+    client::options::{ClientOptions, ClientOptionsBuilder},
     signing::SignerType,
 };
 

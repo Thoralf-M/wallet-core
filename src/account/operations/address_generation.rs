@@ -1,5 +1,5 @@
 use crate::account::{
-    account_handle::AccountHandle,
+    handle::AccountHandle,
     types::address::{parse_bech32_address, AccountAddress, AddressWrapper},
     Account,
 };
