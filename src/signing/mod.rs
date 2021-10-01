@@ -2,14 +2,21 @@ use crate::account::Account;
 use iota_client::bee_message::{address::Address, input::Input};
 
 use getset::Getters;
+use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
+use tokio::sync::Mutex;
 
-use std::path::Path;
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 #[cfg(feature = "mnemonic")]
 pub(crate) mod mnemonic;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+type SignerHandle = Arc<Mutex<Box<dyn Signer + Sync + Send>>>;
+type Signers = Arc<Mutex<HashMap<SignerType, SignerHandle>>>;
+static SIGNERS_INSTANCE: OnceCell<Signers> = OnceCell::new();
+
+/// The signer types.
+#[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum SignerType {
     /// Stronghold signer.
     #[cfg(feature = "stronghold")]
@@ -27,6 +34,7 @@ pub enum SignerType {
     /// Custom signer with its identifier.
     Custom(String),
 }
+
 /// Signer interface.
 #[async_trait::async_trait]
 pub trait Signer {
@@ -50,6 +58,74 @@ pub trait Signer {
         inputs: &mut Vec<TransactionInput>,
         metadata: SignMessageMetadata<'a>,
     ) -> crate::Result<Vec<iota_client::bee_message::prelude::UnlockBlock>>;
+}
+
+fn default_signers() -> Signers {
+    let mut signers = HashMap::new();
+
+    #[cfg(feature = "stronghold")]
+    {
+        signers.insert(
+            SignerType::Stronghold,
+            Arc::new(Mutex::new(
+                Box::new(self::stronghold::StrongholdSigner::default()) as Box<dyn Signer + Sync + Send>
+            )),
+        );
+    }
+
+    #[cfg(feature = "ledger-nano")]
+    {
+        signers.insert(
+            SignerType::LedgerNano,
+            Arc::new(Mutex::new(Box::new(ledger::LedgerNanoSigner {
+                is_simulator: false,
+                ..Default::default()
+            }) as Box<dyn Signer + Sync + Send>)),
+        );
+    }
+
+    #[cfg(feature = "ledger-nano-simulator")]
+    {
+        signers.insert(
+            SignerType::LedgerNanoSimulator,
+            Arc::new(Mutex::new(Box::new(ledger::LedgerNanoSigner {
+                is_simulator: true,
+                ..Default::default()
+            }) as Box<dyn Signer + Sync + Send>)),
+        );
+    }
+
+    #[cfg(feature = "mnemonic")]
+    {
+        signers.insert(
+            SignerType::Mnemonic,
+            Arc::new(Mutex::new(
+                Box::new(self::mnemonic::MnemonicSigner::default()) as Box<dyn Signer + Sync + Send>
+            )),
+        );
+    }
+
+    Arc::new(Mutex::new(signers))
+}
+
+/// Sets the signer interface for the given type.
+pub async fn set_signer<S: Signer + Sync + Send + 'static>(signer_type: SignerType, signer: S) {
+    SIGNERS_INSTANCE
+        .get_or_init(default_signers)
+        .lock()
+        .await
+        .insert(signer_type, Arc::new(Mutex::new(Box::new(signer))));
+}
+
+/// Gets the signer interface.
+pub(crate) async fn get_signer(signer_type: &SignerType) -> SignerHandle {
+    SIGNERS_INSTANCE
+        .get_or_init(default_signers)
+        .lock()
+        .await
+        .get(signer_type)
+        .cloned()
+        .unwrap_or_else(|| panic!("signer not initialized for type {:?}", signer_type))
 }
 
 /// Metadata provided to [sign_message](trait.Signer.html#method.sign_message).

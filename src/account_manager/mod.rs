@@ -113,8 +113,24 @@ impl AccountManager {
     pub fn generate_mnemonic(&self) -> crate::Result<String> {
         Ok(Client::generate_mnemonic()?)
     }
+    pub fn verify_mnemonic(&self, mnemonic: &str) -> crate::Result<()> {
+        // first we check if the mnemonic is valid to give meaningful errors
+        crypto::keys::bip39::wordlist::verify(mnemonic, &crypto::keys::bip39::wordlist::ENGLISH)
+            .map_err(|e| crate::Error::InvalidMnemonic(format!("{:?}", e)))?;
+        Ok(())
+    }
 
     pub async fn store_mnemonic(&self, signer_type: SignerType, mnemonic: Option<String>) -> crate::Result<()> {
+        let signer = crate::signing::get_signer(&signer_type).await;
+        let mut signer = signer.lock().await;
+        let mnemonic = match mnemonic {
+            Some(m) => {
+                self.verify_mnemonic(&m)?;
+                m
+            }
+            None => self.generate_mnemonic()?,
+        };
+        signer.store_mnemonic(std::path::Path::new(""), mnemonic).await?;
         Ok(())
     }
 

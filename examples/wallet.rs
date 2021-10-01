@@ -28,7 +28,11 @@ async fn main() -> Result<()> {
         Ok(account) => account,
         _ => {
             // first we'll create an example account and store it
-            manager.store_mnemonic(SignerType::Mnemonic, None).await.unwrap();
+            let mnemonic = "until fire hat mountain zoo grocery real deny advance change marble taste goat ivory wheat bubble panic banner tattoo client ticket action race rocket".to_string();
+            manager
+                .store_mnemonic(SignerType::Mnemonic, Some(mnemonic))
+                .await
+                .unwrap();
             let client_options = ClientOptionsBuilder::new()
                 .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
                 .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
