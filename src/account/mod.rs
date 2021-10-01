@@ -5,7 +5,7 @@ pub(crate) mod types;
 
 use crate::{
     account::types::{address::AccountAddress, AccountBalance, Output},
-    client::options::{ClientOptions},
+    client::options::ClientOptions,
     signing::SignerType,
 };
 

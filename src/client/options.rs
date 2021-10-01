@@ -1,13 +1,11 @@
 use getset::Getters;
-use iota_client::{node_manager::validate_url};
+use iota_client::node_manager::validate_url;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::{
-    client::{
-        api::{Api},
-        node::{Node, NodeAuth},
-    },
+use crate::client::{
+    api::Api,
+    node::{Node, NodeAuth},
 };
 
 use std::{
@@ -165,7 +163,7 @@ impl ClientOptionsBuilder {
                 jwt: jwt.map(|r| r.to_string()),
                 basic_auth_name_pwd: basic_auth_name_pwd.map(|(l, r)| (l.to_string(), r.to_string())),
             }
-                .into(),
+            .into(),
             disabled: false,
         });
         Ok(self)
@@ -184,7 +182,7 @@ impl ClientOptionsBuilder {
                 jwt: jwt.map(|r| r.to_string()),
                 basic_auth_name_pwd: basic_auth_name_pwd.map(|(l, r)| (l.to_string(), r.to_string())),
             }
-                .into(),
+            .into(),
             disabled: false,
         });
         Ok(self)
@@ -194,7 +192,7 @@ impl ClientOptionsBuilder {
     ///
     /// # Examples
     /// ```
-    /// use wallet_core::client::ClientOptionsBuilder;
+    /// use wallet_core::client::options::ClientOptionsBuilder;
     /// let client_options = ClientOptionsBuilder::new()
     ///     .with_nodes(&[
     ///         "https://api.lb-0.h.chrysalis-devnet.iota.cafe",
@@ -229,7 +227,7 @@ impl ClientOptionsBuilder {
                 jwt: jwt.map(|r| r.to_string()),
                 basic_auth_name_pwd: basic_auth_name_pwd.map(|(l, r)| (l.to_string(), r.to_string())),
             }
-                .into(),
+            .into(),
             disabled: false,
         });
         Ok(self)
@@ -246,7 +244,7 @@ impl ClientOptionsBuilder {
     ///
     /// # Examples
     /// ```
-    /// use wallet_core::client::ClientOptionsBuilder;
+    /// use wallet_core::client::options::ClientOptionsBuilder;
     /// let client_options = ClientOptionsBuilder::new().with_network("testnet2").finish();
     /// ```
     pub fn with_network<N: Into<String>>(mut self, network: N) -> Self {
@@ -500,16 +498,16 @@ mod tests {
 
         // assert that each different client_options create a new client instance
         for case in &test_cases {
-            let len = super::instances().lock().await.len();
-            super::get_client(case).await.unwrap();
-            assert_eq!(super::instances().lock().await.len() - len, 1);
+            let len = crate::client::instances().lock().await.len();
+            crate::client::get_client(case).await.unwrap();
+            assert_eq!(crate::client::instances().lock().await.len() - len, 1);
         }
 
         // assert that subsequent calls with options already initialized doesn't create new clients
-        let len = super::instances().lock().await.len();
+        let len = crate::client::instances().lock().await.len();
         for case in &test_cases {
-            super::get_client(case).await.unwrap();
-            assert_eq!(super::instances().lock().await.len(), len);
+            crate::client::get_client(case).await.unwrap();
+            assert_eq!(crate::client::instances().lock().await.len(), len);
         }
     }
 }

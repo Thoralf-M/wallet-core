@@ -1,10 +1,7 @@
 use iota_client::{node_manager::validate_url, Client, ClientBuilder};
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 
-use std::{
-    hash::{Hash},
-    str::FromStr,
-};
+use std::{hash::Hash, str::FromStr};
 
 /// Each of the node APIs the wallet uses.
 #[derive(Eq, PartialEq, Hash, Clone, Debug)]
@@ -47,8 +44,8 @@ impl Serialize for Api {
 
 impl<'de> Deserialize<'de> for Api {
     fn deserialize<D>(deserializer: D) -> Result<Api, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         struct StringVisitor;
         impl<'de> Visitor<'de> for StringVisitor {
@@ -58,8 +55,8 @@ impl<'de> Deserialize<'de> for Api {
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-                where
-                    E: serde::de::Error,
+            where
+                E: serde::de::Error,
             {
                 let value = Api::from_str(v).map_err(serde::de::Error::custom)?;
                 Ok(value)

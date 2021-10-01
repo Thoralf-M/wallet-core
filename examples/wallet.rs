@@ -6,7 +6,9 @@
 use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigBuilder};
 use log::LevelFilter;
 use std::time::Instant;
-use wallet_core::{account_manager::AccountManager, client::options::{ClientOptionsBuilder}, signing::SignerType, Result};
+use wallet_core::{
+    account_manager::AccountManager, client::options::ClientOptionsBuilder, signing::SignerType, Result,
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {

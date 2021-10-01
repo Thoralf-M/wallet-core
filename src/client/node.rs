@@ -2,9 +2,7 @@ use getset::Getters;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use std::{
-    hash::{Hash},
-};
+use std::hash::Hash;
 
 /// Node authentication object.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]

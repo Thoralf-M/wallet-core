@@ -1,9 +1,6 @@
 use crate::account::{handle::AccountHandle, types::address::AccountAddress, AccountBalance};
 use iota_client::{
-    bee_message::{
-        input::UtxoInput,
-        output::{OutputId},
-    },
+    bee_message::{input::UtxoInput, output::OutputId},
     bee_rest_api::types::responses::OutputResponse,
 };
 

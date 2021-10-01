@@ -2,10 +2,9 @@ pub(crate) mod builder;
 
 use crate::{
     account::{
-        builder::AccountBuilder, handle::AccountHandle, operations::syncing::SyncOptions,
-        types::AccountIdentifier,
+        builder::AccountBuilder, handle::AccountHandle, operations::syncing::SyncOptions, types::AccountIdentifier,
     },
-    client::options::{ClientOptions},
+    client::options::ClientOptions,
     events::WalletEvent,
     signing::SignerType,
 };

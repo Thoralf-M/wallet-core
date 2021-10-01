@@ -11,14 +11,9 @@ use once_cell::sync::Lazy;
 use tokio::sync::{Mutex, RwLock};
 use url::Url;
 
-use crate::{
-    client::options::{ClientOptions}
-};
+use crate::client::options::ClientOptions;
 
-use std::{
-    collections::HashMap,
-    sync::Arc,
-};
+use std::{collections::HashMap, sync::Arc};
 
 type ClientInstanceMap = Arc<Mutex<HashMap<ClientOptions, Arc<RwLock<Client>>>>>;
 
