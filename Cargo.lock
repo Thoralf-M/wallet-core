@@ -1923,6 +1923,7 @@ dependencies = [
  "futures",
  "getset",
  "iota-client",
+ "iota-crypto 0.7.0",
  "log",
  "once_cell",
  "serde",

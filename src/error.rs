@@ -212,6 +212,17 @@ pub enum Error {
     /// Couldn't get a spent output from a node.
     #[error("couldn't get a spent output from node")]
     SpentOutputNotFound,
+    #[cfg(feature = "mnemonic")]
+    /// Blake2b256 Error
+    #[error("{0}")]
+    Blake2b256(&'static str),
+    #[cfg(feature = "mnemonic")]
+    #[error("invalid address or account index {0}")]
+    TryFromInt(#[from] std::num::TryFromIntError),
+    #[cfg(feature = "mnemonic")]
+    /// Crypto.rs error
+    #[error("{0}")]
+    Crypto(#[from] crypto::Error),
 }
 
 // impl Drop for Error {
@@ -343,6 +354,12 @@ impl serde::Serialize for Error {
             Self::TaskJoinError(_) => serialize_variant(self, serializer, "TaskJoinError"),
             Self::StdThreadJoinError => serialize_variant(self, serializer, "StdThreadJoinError"),
             Self::SpentOutputNotFound => serialize_variant(self, serializer, "SpentOutputNotFound"),
+            #[cfg(feature = "mnemonic")]
+            Self::Blake2b256(_) => serialize_variant(self, serializer, "Blake2b256"),
+            #[cfg(feature = "mnemonic")]
+            Self::TryFromInt(_) => serialize_variant(self, serializer, "TryFromInt"),
+            #[cfg(feature = "mnemonic")]
+            Self::Crypto(_) => serialize_variant(self, serializer, "Crypto"),
         }
     }
 }

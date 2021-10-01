@@ -6,6 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use std::path::Path;
 
+#[cfg(feature = "mnemonic")]
+pub(crate) mod mnemonic;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SignerType {
     /// Stronghold signer.
