@@ -7,6 +7,7 @@ pub mod account;
 /// The account manager module.
 pub mod account_manager;
 /// The actor interface for the library.
+// #[cfg(feature = "actor")]
 // pub mod actor;
 /// The client module.
 pub mod client;
