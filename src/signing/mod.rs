@@ -104,6 +104,12 @@ fn default_signers() -> Signers {
             )),
         );
     }
+    signers.insert(
+        SignerType::Mnemonic,
+        Arc::new(Mutex::new(
+            Box::new(self::mnemonic::MnemonicSigner::default()) as Box<dyn Signer + Sync + Send>
+        )),
+    );
 
     Arc::new(Mutex::new(signers))
 }
@@ -144,7 +150,7 @@ pub struct SignMessageMetadata<'a> {
 }
 
 /// Metadata provided to [generate_address](trait.Signer.html#method.generate_address).
-#[derive(Getters, Clone)]
+#[derive(Debug, Getters, Clone, Serialize, Deserialize)]
 #[getset(get = "pub")]
 pub struct GenerateAddressMetadata {
     /// Indicates that the address is being generated as part of the account syncing process.
@@ -157,7 +163,7 @@ pub struct GenerateAddressMetadata {
 }
 
 /// Network enum for ledger metadata
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Network {
     /// Mainnet
     Mainnet,

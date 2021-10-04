@@ -24,15 +24,12 @@ async fn main() -> Result<()> {
 
     // Get account or create a new one
     let account_alias = "logger";
+    let mnemonic = "until fire hat mountain zoo grocery real deny advance change marble taste goat ivory wheat bubble panic banner tattoo client ticket action race rocket".to_string();
+    manager.store_mnemonic(SignerType::Mnemonic, Some(mnemonic)).await?;
     let account = match manager.get_account(account_alias.to_string()).await {
         Ok(account) => account,
         _ => {
             // first we'll create an example account and store it
-            let mnemonic = "until fire hat mountain zoo grocery real deny advance change marble taste goat ivory wheat bubble panic banner tattoo client ticket action race rocket".to_string();
-            manager
-                .store_mnemonic(SignerType::Mnemonic, Some(mnemonic))
-                .await
-                .unwrap();
             let client_options = ClientOptionsBuilder::new()
                 .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
                 .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
@@ -57,7 +54,7 @@ async fn main() -> Result<()> {
     // let accounts = manager.get_accounts().await?;
     // println!("Accounts: {:?}", accounts);
 
-    let _address = account.generate_addresses(50).await?;
+    let _address = account.generate_addresses(4, None).await?;
     // println!("Generated a new address: {:?}", _address);
 
     let addresses = account.list_addresses().await?;

@@ -2,6 +2,7 @@ use crate::{
     account::{
         operations::{
             address_generation,
+            address_generation::AddressGenerationOptions,
             syncing::{sync_account, SyncOptions},
             transfer::{send_transfer, TransferOptions, TransferOutput},
         },
@@ -50,8 +51,13 @@ impl AccountHandle {
         Ok(MessageId::from_str("")?)
     }
 
-    pub async fn generate_addresses(&self, amount: usize) -> crate::Result<Vec<AccountAddress>> {
-        address_generation::generate_addresses(self, amount).await
+    pub async fn generate_addresses(
+        &self,
+        amount: usize,
+        options: Option<AddressGenerationOptions>,
+    ) -> crate::Result<Vec<AccountAddress>> {
+        let options = options.unwrap_or_default();
+        address_generation::generate_addresses(self, amount, options).await
     }
 
     pub async fn list_addresses(&self) -> crate::Result<Vec<AccountAddress>> {

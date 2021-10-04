@@ -12,6 +12,7 @@ use std::{
 pub struct AccountBuilder {
     index: usize,
     client_options: Option<ClientOptions>,
+    signer_type: SignerType,
 }
 
 impl AccountBuilder {
@@ -20,10 +21,20 @@ impl AccountBuilder {
         Self {
             index,
             client_options: None,
+            #[cfg(feature = "stronghold")]
+            signer_type: SignerType::Stronghold,
+            #[cfg(all(feature = "mnemonic", not(feature = "stronghold")))]
+            signer_type: SignerType::Mnemonic,
+            #[cfg(not(any(feature = "stronghold", feature = "mnemonic")))]
+            signer_type: SignerType::Mnemonic,
         }
     }
     pub fn with_client_options(mut self, options: ClientOptions) -> Self {
         self.client_options.replace(options);
+        self
+    }
+    pub fn with_signer_type(mut self, signer_type: SignerType) -> Self {
+        self.signer_type = signer_type;
         self
     }
     pub fn finish(&self) -> crate::Result<Account> {
@@ -31,7 +42,7 @@ impl AccountBuilder {
             id: self.index.to_string(),
             index: self.index,
             alias: self.index.to_string(),
-            signer_type: SignerType::Custom("".to_string()),
+            signer_type: self.signer_type.clone(),
             addresses: Vec::new(),
             locked_outputs: HashSet::new(),
             outputs: HashMap::new(),

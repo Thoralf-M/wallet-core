@@ -1,44 +1,77 @@
-use crate::account::{
-    handle::AccountHandle,
-    types::address::{parse_bech32_address, AccountAddress},
+use crate::{
+    account::{
+        handle::AccountHandle,
+        types::address::{AccountAddress, AddressWrapper},
+    },
+    signing::{GenerateAddressMetadata, Network},
 };
 
 use iota_client::Seed;
+use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
-pub async fn generate_addresses(account_handle: &AccountHandle, amount: usize) -> crate::Result<Vec<AccountAddress>> {
-    log::debug!("[ADDRESS GENERATION] generating {} addresses", amount);
-    let mut account = account_handle.write().await;
-    // todo use SignerType
-    let client_guard = crate::client::get_client(&account.client_options).await?;
-    let client = client_guard.read().await;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddressGenerationOptions {
+    pub internal: bool,
+    pub metadata: GenerateAddressMetadata,
+}
 
-    let seed = Seed::from_bytes(&[
-        37, 106, 129, 139, 42, 172, 69, 137, 65, 247, 39, 73, 133, 164, 16, 229, 127, 183, 80, 243, 163, 166, 121, 105,
-        236, 229, 189, 154, 231, 238, 245, 178,
-    ]);
-    let addresses = client
-        .get_addresses(&seed)
-        .with_account_index(0)
-        .with_range(0..amount)
-        .finish()
-        .await
-        .unwrap();
-
-    let account_addresses: Vec<AccountAddress> = addresses
-        .into_iter()
-        .enumerate()
-        .map(|a| AccountAddress {
-            address: parse_bech32_address(a.1).unwrap(),
-            key_index: a.0,
+impl Default for AddressGenerationOptions {
+    fn default() -> Self {
+        Self {
             internal: false,
+            metadata: GenerateAddressMetadata {
+                syncing: false,
+                network: Network::Testnet,
+            },
+        }
+    }
+}
+
+pub async fn generate_addresses(
+    account_handle: &AccountHandle,
+    amount: usize,
+    options: AddressGenerationOptions,
+) -> crate::Result<Vec<AccountAddress>> {
+    log::debug!("[ADDRESS GENERATION] generating {} addresses", amount);
+    let account = account_handle.read().await;
+    let signer = crate::signing::get_signer(&account.signer_type).await;
+    let mut signer = signer.lock().await;
+
+    // get the highest index for the public or internal addresses so we don't generate the same addresses twice
+    let address_with_highest_index = account
+        .addresses
+        .iter()
+        .filter(|address| address.internal == options.internal)
+        .max_by_key(|a| a.key_index);
+    let highest_current_index_plus_one = match address_with_highest_index {
+        // increase index by one because this will be the index for the new address
+        Some(address) => address.key_index + 1,
+        None => 0,
+    };
+    // todo: read bech32_hrp from first address and only get it from the client if we don't have any address (so only
+    // for the first address)
+    let client_guard = crate::client::get_client(&account.client_options).await?;
+    let bech32_hrp = client_guard.read().await.get_bech32_hrp().await?;
+    let mut generate_addresses = Vec::new();
+    for address_index in highest_current_index_plus_one..highest_current_index_plus_one + amount {
+        let address = signer
+            .generate_address(&account, address_index, options.internal, options.metadata.clone())
+            .await?;
+        generate_addresses.push(AccountAddress {
+            address: AddressWrapper::new(address, bech32_hrp.clone()),
+            key_index: address_index,
+            internal: options.internal,
             outputs: HashSet::new(),
             balance: 0,
             used: false,
-        })
-        .collect();
-    account.addresses.extend(account_addresses.clone());
+        });
+    }
+    drop(account);
+
+    let mut account = account_handle.write().await;
+    account.addresses.extend(generate_addresses.clone());
     // store account to database if storage is used
-    Ok(account_addresses)
+    Ok(generate_addresses)
 }
