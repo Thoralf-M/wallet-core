@@ -5,7 +5,7 @@ use crate::account::{
 };
 use iota_client::bee_message::output::OutputId;
 
-use std::{str::FromStr, time::Instant};
+use std::{collections::HashSet, str::FromStr, time::Instant};
 
 /// Get the balance and return only addresses with a positive balance
 pub(crate) async fn get_addresses_with_balance(
@@ -15,7 +15,11 @@ pub(crate) async fn get_addresses_with_balance(
     log::debug!("[SYNC] start get_addresses_with_balance");
     let balance_sync_start_time = Instant::now();
     let account = account_handle.read().await;
-    let address_before_syncing = account.addresses().clone();
+    let mut address_before_syncing = account.addresses().clone();
+    // clear output ids, because we will sync the new ones and if we change the network we wouldn't find them
+    for address in address_before_syncing.iter_mut() {
+        address.outputs = HashSet::new();
+    }
 
     let client_guard = crate::client::get_client(&account.client_options).await?;
     drop(account);

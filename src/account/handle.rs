@@ -78,7 +78,10 @@ impl AccountHandle {
     }
 
     // Should only be called from the AccountManager so all accounts use the same options
-    pub(crate) async fn set_client_options(self, options: ClientOptions) -> crate::Result<()> {
+    pub(crate) async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
+        let mut account = self.account.write().await;
+        account.client_options = options;
+        drop(account);
         // after we set the new client options we should sync the account because the network could have changed
         // we sync with all addresses, because otherwise the balance wouldn't get updated if an address doesn't has
         // balance also in the new network

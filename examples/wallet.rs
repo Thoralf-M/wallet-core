@@ -47,10 +47,6 @@ async fn main() -> Result<()> {
         }
     };
 
-    let now = Instant::now();
-    let _balance = account.sync(None).await?;
-    println!("Syncing took: {:.2?}", now.elapsed());
-
     // let accounts = manager.get_accounts().await?;
     // println!("Accounts: {:?}", accounts);
 
@@ -60,6 +56,33 @@ async fn main() -> Result<()> {
     let addresses = account.list_addresses().await?;
     println!("Addresses: {}", addresses.len());
 
+    let now = Instant::now();
+    let balance = account.sync(None).await?;
+    println!("Syncing took: {:.2?}", now.elapsed());
+    println!("Balance: {:?}", balance);
+
+    // switch to mainnet
+    let client_options = ClientOptionsBuilder::new()
+        .with_node("https://chrysalis-nodes.iota.org/")?
+        .with_node("https://chrysalis-nodes.iota.cafe/")?
+        .with_node_sync_disabled()
+        .finish()
+        .unwrap();
+    manager.set_client_options(client_options).await?;
+    let now = Instant::now();
+    let balance = account.sync(None).await?;
+    println!("Syncing took: {:.2?}", now.elapsed());
+    println!("Balance: {:?}", balance);
+
+    // switch back to testnet
+    let client_options = ClientOptionsBuilder::new()
+        .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
+        .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
+        .with_node("https://api.thin-hornet-1.h.chrysalis-devnet.iota.cafe")?
+        .with_node_sync_disabled()
+        .finish()
+        .unwrap();
+    manager.set_client_options(client_options).await?;
     let now = Instant::now();
     let balance = account.sync(None).await?;
     println!("Syncing took: {:.2?}", now.elapsed());

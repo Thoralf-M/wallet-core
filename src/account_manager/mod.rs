@@ -97,6 +97,10 @@ impl AccountManager {
     }
 
     pub async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
+        let accounts = self.accounts.read().await;
+        for account in accounts.iter() {
+            account.set_client_options(options.clone()).await?;
+        }
         Ok(())
     }
 
