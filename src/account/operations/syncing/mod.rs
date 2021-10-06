@@ -57,7 +57,7 @@ fn default_gap_limit() -> usize {
     0
 }
 
-// Sync an account
+/// Syncs an account
 pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions) -> crate::Result<AccountBalance> {
     // todo verify that no conflicts can happen when we drop the account handle in between
     log::debug!("[SYNC] start syncing");
@@ -92,6 +92,7 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
     account_handle.balance().await
 }
 
+/// Update account with newly synced data
 async fn update_account(
     account_handle: &AccountHandle,
     addresses_with_new_output_ids: Vec<AccountAddress>,

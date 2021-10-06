@@ -16,7 +16,7 @@ pub struct AccountBuilder {
 }
 
 impl AccountBuilder {
-    /// Create an Iota client builder
+    /// Create an IOTA client builder
     pub fn new(index: usize) -> Self {
         Self {
             index,
@@ -29,14 +29,17 @@ impl AccountBuilder {
             signer_type: SignerType::Mnemonic,
         }
     }
+    /// Set the client options
     pub fn with_client_options(mut self, options: ClientOptions) -> Self {
         self.client_options.replace(options);
         self
     }
+    /// Set the signer type
     pub fn with_signer_type(mut self, signer_type: SignerType) -> Self {
         self.signer_type = signer_type;
         self
     }
+    // Build the Account
     pub fn finish(&self) -> crate::Result<Account> {
         Ok(Account {
             id: self.index.to_string(),

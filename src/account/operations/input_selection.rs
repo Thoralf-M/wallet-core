@@ -2,6 +2,7 @@ use crate::account::Account;
 
 use iota_client::bee_message::output::OutputId;
 
+/// Selects inputs for a transaction
 pub(crate) async fn select_inputs(
     account: &Account,
     amount: u64,

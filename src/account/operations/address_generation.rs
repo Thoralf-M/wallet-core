@@ -28,6 +28,7 @@ impl Default for AddressGenerationOptions {
     }
 }
 
+/// Generate addresses and stores them in the account
 pub async fn generate_addresses(
     account_handle: &AccountHandle,
     amount: usize,

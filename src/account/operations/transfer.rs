@@ -58,6 +58,7 @@ pub struct TransferOptions {
     custom_inputs: Option<Vec<OutputId>>,
 }
 
+/// Function to create a transfer
 pub async fn send_transfer(
     account: &Account,
     outputs: Vec<TransferOutput>,
@@ -87,6 +88,7 @@ pub async fn send_transfer(
     // store transaction payload to account (with db feature also store the account to the db) here before sending
     send_payload(Payload::Transaction(Box::new(transaction_payload))).await
 }
+/// Function to build the transaction essence
 async fn create_transaction(
     account: &Account,
     inputs: Vec<OutputData>,
@@ -95,9 +97,11 @@ async fn create_transaction(
 ) -> crate::Result<Essence> {
     Ok(Essence::Regular(RegularEssence::builder().finish()?))
 }
+/// Function to sign a transaction essence
 async fn sign_tx_essence(essence: Essence) -> crate::Result<TransactionPayload> {
     Ok(TransactionPayload::builder().finish()?)
 }
+/// Submits a payload in a message
 async fn send_payload(payload: Payload) -> crate::Result<MessageId> {
     Ok(MessageId::from_str("")?)
 }

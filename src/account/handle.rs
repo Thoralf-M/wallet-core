@@ -30,14 +30,17 @@ impl AccountHandle {
         }
     }
 
+    /// Sync the account
     pub async fn sync(&self, options: Option<SyncOptions>) -> crate::Result<AccountBalance> {
         sync_account(self, &options.unwrap_or_default()).await
     }
 
+    /// Consolidate outputs from addresses that have more outputs than the consolidation threshold
     async fn consolidate_outputs(account: &Account) -> crate::Result<Vec<Transaction>> {
         Ok(vec![])
     }
 
+    /// Send a transaction
     pub async fn send(
         &self,
         outputs: Vec<TransferOutput>,
@@ -48,10 +51,12 @@ impl AccountHandle {
         send_transfer(&account, outputs, options).await
     }
 
+    /// Reattaches or promotes a message to get it confirmed
     pub async fn retry(message_id: MessageId, sync: bool) -> crate::Result<MessageId> {
         Ok(MessageId::from_str("")?)
     }
 
+    /// Generate addresses
     pub async fn generate_addresses(
         &self,
         amount: usize,
@@ -61,6 +66,7 @@ impl AccountHandle {
         address_generation::generate_addresses(self, amount, options).await
     }
 
+    /// Returns all addresses of the account
     pub async fn list_addresses(&self) -> crate::Result<Vec<AccountAddress>> {
         let account = self.read().await;
         Ok(account.addresses().to_vec())

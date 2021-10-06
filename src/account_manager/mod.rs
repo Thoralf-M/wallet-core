@@ -81,13 +81,17 @@ impl AccountManager {
         };
         Err(crate::Error::AccountNotFound)
     }
+    /// Get all accounts
     pub async fn get_accounts(&self) -> crate::Result<Vec<AccountHandle>> {
         Ok(self.accounts.read().await.clone())
     }
+    /// Delete an account
     pub async fn delete_account(&self, identifier: AccountIdentifier) -> crate::Result<()> {
         Ok(())
     }
+
     // search balance, recovery from mnemonic or balance finder
+    /// Function to find balances, to recover from backups
     pub async fn search_balance(
         &self,
         addresses_per_account: usize,
@@ -96,6 +100,7 @@ impl AccountManager {
         Ok(vec![])
     }
 
+    /// Sets the client options for all accounts
     pub async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
         let accounts = self.accounts.read().await;
         for account in accounts.iter() {
@@ -114,9 +119,12 @@ impl AccountManager {
     // listen to all wallet events
     // pub fn listen() -> crate::Result<(Sender<WalletEvent>, Receiver<WalletEvent>)> {}
 
+    /// Generates a new random mnemonic.
     pub fn generate_mnemonic(&self) -> crate::Result<String> {
         Ok(Client::generate_mnemonic()?)
     }
+
+    /// Verify that a &str is a valid mnemonic.
     pub fn verify_mnemonic(&self, mnemonic: &str) -> crate::Result<()> {
         // first we check if the mnemonic is valid to give meaningful errors
         crypto::keys::bip39::wordlist::verify(mnemonic, &crypto::keys::bip39::wordlist::ENGLISH)
@@ -124,6 +132,7 @@ impl AccountManager {
         Ok(())
     }
 
+    // Sets the mnemonic for the signer
     pub async fn store_mnemonic(&self, signer_type: SignerType, mnemonic: Option<String>) -> crate::Result<()> {
         let signer = crate::signing::get_signer(&signer_type).await;
         let mut signer = signer.lock().await;
