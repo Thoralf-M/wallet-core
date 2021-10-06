@@ -194,6 +194,9 @@ pub enum Error {
     /// Too many outputs
     #[error("too many outputs: {0}, max is {1}")]
     TooManyOutputs(usize, usize),
+    /// Too many outputs
+    #[error("too many outputs: {0}, max is {1}")]
+    TooManyInputs(usize, usize),
     /// Funds are spread over too many outputs
     #[error("funds are spread over too many outputs {0}/{1}, consolidation required")]
     ConsolidationRequired(usize, usize),
@@ -348,6 +351,7 @@ impl serde::Serialize for Error {
             Self::NodesNotSynced(_) => serialize_variant(self, serializer, "NodesNotSynced"),
             Self::FailedToGetRemainder => serialize_variant(self, serializer, "FailedToGetRemainder"),
             Self::TooManyOutputs(_, _) => serialize_variant(self, serializer, "TooManyOutputs"),
+            Self::TooManyInputs(_, _) => serialize_variant(self, serializer, "TooManyInputs"),
             Self::ConsolidationRequired(_, _) => serialize_variant(self, serializer, "ConsolidationRequired"),
             Self::InputAddressNotFound => serialize_variant(self, serializer, "InputAddressNotFound"),
             Self::PoisonError => serialize_variant(self, serializer, "PoisonError"),

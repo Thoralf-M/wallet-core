@@ -1,10 +1,11 @@
 use crate::account::{
     operations::input_selection::select_inputs,
-    types::{address::AddressWrapper, Output, OutputKind},
+    types::{address::AddressWrapper, OutputData, OutputKind},
     Account,
 };
 
 use iota_client::bee_message::{
+    constants::{INPUT_OUTPUT_COUNT_MAX, INPUT_OUTPUT_COUNT_RANGE},
     output::OutputId,
     payload::{
         indexation::IndexationPayload,
@@ -32,13 +33,14 @@ pub enum RemainderValueStrategy {
     ReuseAddress,
     /// Move the remainder value to a change address.
     ChangeAddress,
-    /// Move the remainder value to an address that must belong to the source account.
+    /// Move the remainder value to any specified address.
     #[serde(with = "crate::account::types::address_serde")]
-    AccountAddress(AddressWrapper),
+    CustomAddress(AddressWrapper),
 }
 
 impl Default for RemainderValueStrategy {
     fn default() -> Self {
+        // ChangeAddress is the default because it's better for privacy than reusing an address.
         Self::ChangeAddress
     }
 }
@@ -62,8 +64,18 @@ pub async fn send_transfer(
     options: Option<TransferOptions>,
 ) -> crate::Result<MessageId> {
     let amount = outputs.iter().map(|x| x.amount).sum();
+    // validate outputs amount, need to be validated again in select_inputs in case we need a remainder output
+    if !INPUT_OUTPUT_COUNT_RANGE.contains(&outputs.len()) {
+        return Err(crate::Error::TooManyOutputs(outputs.len(), INPUT_OUTPUT_COUNT_MAX));
+    }
     let custom_inputs: Option<Vec<OutputId>> = {
         if let Some(options) = options.clone() {
+            // validate inputs amount
+            if let Some(inputs) = &options.custom_inputs {
+                if !INPUT_OUTPUT_COUNT_RANGE.contains(&inputs.len()) {
+                    return Err(crate::Error::TooManyInputs(inputs.len(), INPUT_OUTPUT_COUNT_MAX));
+                }
+            }
             options.custom_inputs
         } else {
             None
@@ -72,11 +84,12 @@ pub async fn send_transfer(
     let inputs = select_inputs(account, amount, custom_inputs).await?;
     let essence = create_transaction(account, inputs, outputs, options).await?;
     let transaction_payload = sign_tx_essence(essence).await?;
+    // store transaction payload to account (with db feature also store the account to the db) here before sending
     send_payload(Payload::Transaction(Box::new(transaction_payload))).await
 }
 async fn create_transaction(
     account: &Account,
-    inputs: Vec<Output>,
+    inputs: Vec<OutputData>,
     outputs: Vec<TransferOutput>,
     options: Option<TransferOptions>,
 ) -> crate::Result<Essence> {

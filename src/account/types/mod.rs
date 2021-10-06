@@ -2,7 +2,6 @@ pub(crate) mod address;
 pub(crate) mod address_serde;
 use address::{parse_bech32_address, AddressWrapper};
 
-use address_serde::{deserialize, serialize};
 use iota_client::bee_message::{
     payload::transaction::{TransactionId, TransactionPayload},
     MessageId,
@@ -79,20 +78,33 @@ pub struct AccountBalance {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Output {
+pub struct OutputData {
+    // todo: Store output id instead of transaction id and index?
+    #[serde(rename = "transactionId")]
     pub transaction_id: TransactionId,
-    pub message_id: MessageId,
     pub index: u16,
+    /// Message ID
+    #[serde(rename = "messageId")]
+    pub message_id: MessageId,
     pub amount: u64,
+    /// If an output is spent
+    #[serde(rename = "isSpent")]
     pub is_spent: bool,
+    /// Associated address.
+    #[serde(with = "crate::account::types::address_serde")]
     pub address: AddressWrapper,
     pub kind: OutputKind,
+    /// Network ID
+    #[serde(rename = "networkId")]
+    pub network_id: u64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transaction {
     pub transaction: TransactionPayload,
-    pub inputs: Vec<Output>,
+    // probably better to remove it and fetch the output with the output_id if needed (if stored separated from the
+    // account)
+    pub inputs: Vec<OutputData>,
     pub attachments: Vec<MessageId>,
     pub confirmed: bool,
     // network id to ignore outputs when set_client_options is used to switch to another network

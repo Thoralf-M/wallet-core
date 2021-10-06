@@ -1,4 +1,3 @@
-use iota_client::{node_manager::validate_url, Client, ClientBuilder};
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 
 use std::{hash::Hash, str::FromStr};

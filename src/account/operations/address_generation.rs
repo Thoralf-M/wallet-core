@@ -3,12 +3,11 @@ use crate::{
         handle::AccountHandle,
         types::address::{AccountAddress, AddressWrapper},
     },
+    client,
     signing::{GenerateAddressMetadata, Network},
 };
 
-use iota_client::Seed;
 use serde::{Deserialize, Serialize};
-
 use std::collections::HashSet;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,7 +51,7 @@ pub async fn generate_addresses(
     };
     // todo: read bech32_hrp from first address and only get it from the client if we don't have any address (so only
     // for the first address)
-    let client_guard = crate::client::get_client(&account.client_options).await?;
+    let client_guard = client::get_client(&account.client_options).await?;
     let bech32_hrp = client_guard.read().await.get_bech32_hrp().await?;
     let mut generate_addresses = Vec::new();
     for address_index in highest_current_index_plus_one..highest_current_index_plus_one + amount {
@@ -72,6 +71,6 @@ pub async fn generate_addresses(
 
     let mut account = account_handle.write().await;
     account.addresses.extend(generate_addresses.clone());
-    // store account to database if storage is used
+    // todo: store account to database if storage is used
     Ok(generate_addresses)
 }

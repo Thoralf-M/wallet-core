@@ -43,6 +43,7 @@ impl AccountHandle {
         outputs: Vec<TransferOutput>,
         options: Option<TransferOptions>,
     ) -> crate::Result<MessageId> {
+        // should we lock the account already already here?
         let account = self.account.write().await;
         send_transfer(&account, outputs, options).await
     }
@@ -65,16 +66,32 @@ impl AccountHandle {
         Ok(account.addresses().to_vec())
     }
 
-    pub fn balance() -> crate::Result<AccountBalance> {
-        Ok(AccountBalance { total: 0, available: 0 })
+    /// Get the total and available blance of an account
+    pub async fn balance(&self) -> crate::Result<AccountBalance> {
+        let account = self.account.read().await;
+        let total_balance: u64 = account.addresses.iter().map(|a| a.balance()).sum();
+        // for `available` get locked_outputs, sum outputs balance and substract from total_balance
+        Ok(AccountBalance {
+            total: total_balance,
+            available: 0,
+        })
     }
 
     // Should only be called from the AccountManager so all accounts use the same options
-    pub(crate) async fn set_client_options(options: ClientOptions) -> crate::Result<()> {
+    pub(crate) async fn set_client_options(self, options: ClientOptions) -> crate::Result<()> {
+        // after we set the new client options we should sync the account because the network could have changed
+        // we sync with all addresses, because otherwise the balance wouldn't get updated if an address doesn't has
+        // balance also in the new network
+        self.sync(Some(SyncOptions {
+            sync_all_addresses: true,
+            ..Default::default()
+        }))
+        .await?;
         Ok(())
     }
 }
 
+// impl Deref so we can use `account_handle.read()` instead of `account_handle.account.read()`
 impl Deref for AccountHandle {
     type Target = RwLock<Account>;
     fn deref(&self) -> &Self::Target {

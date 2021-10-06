@@ -23,7 +23,6 @@ pub mod signing;
 // #[cfg(feature = "stronghold")]
 // #[cfg_attr(docsrs, doc(cfg(feature = "stronghold")))]
 // pub(crate) mod stronghold;
-pub(crate) use crate::account::types::address_serde;
 
 pub use error::Error;
 /// The wallet Result type.
