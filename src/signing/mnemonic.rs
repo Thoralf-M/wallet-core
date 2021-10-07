@@ -13,7 +13,8 @@ use crypto::{
 };
 use iota_client::{
     bee_message::{
-        prelude::{Address, Ed25519Address},
+        address::{Address, Ed25519Address},
+        signature::{Ed25519Signature, SignatureUnlock},
         unlock::{ReferenceUnlock, UnlockBlock},
     },
     Client,
@@ -38,14 +39,16 @@ pub fn set_mnemonic(mnemonic: String) -> crate::Result<()> {
 
     let mut mnemonic_seed = [0u8; 64];
     mnemonic_to_seed(&mnemonic, "", &mut mnemonic_seed);
-    MNEMONIC_SEED.set(mnemonic_seed).expect("Coudln't set mnemonic seed");
+    MNEMONIC_SEED
+        .set(mnemonic_seed)
+        .map_err(|_| crate::Error::MnemonicNotSet)?;
     Ok(())
 }
 
 /// Gets the mnemonic
 pub(crate) fn get_mnemonic_seed() -> crate::Result<Seed> {
     Ok(Seed::from_bytes(
-        MNEMONIC_SEED.get().expect("Couldn't get mnemonic seed"),
+        MNEMONIC_SEED.get().ok_or(crate::Error::MnemonicNotSet)?,
     ))
 }
 
@@ -104,34 +107,42 @@ impl crate::signing::Signer for MnemonicSigner {
         inputs: &mut Vec<super::TransactionInput>,
         _: super::SignMessageMetadata<'a>,
     ) -> crate::Result<Vec<iota_client::bee_message::unlock::UnlockBlock>> {
-        // todo implement signing transaction
+        // order inputs https://github.com/luca-moser/protocol-rfcs/blob/signed-tx-payload/text/0000-transaction-payload/0000-transaction-payload.md
+        inputs.sort_by(|a, b| a.input.cmp(&b.input));
 
-        //     let mut unlock_blocks = vec![];
-        //     let mut signature_indexes = HashMap::<String, usize>::new();
-        //     inputs.sort_by(|a, b| a.input.cmp(&b.input));
+        let hashed_essence = essence.hash();
+        let mut unlock_blocks = Vec::new();
+        let mut signature_indexes = HashMap::<String, usize>::new();
 
-        //     for (current_block_index, recorder) in inputs.iter().enumerate() {
-        //         let signature_index = format!("{}{}", recorder.address_index, recorder.address_internal);
-        //         // Check if current path is same as previous path
-        //         // If so, add a reference unlock block
-        //         if let Some(block_index) = signature_indexes.get(&signature_index) {
-        //             unlock_blocks.push(UnlockBlock::Reference(ReferenceUnlock::new(*block_index as u16)?));
-        //         } else {
-        //             // If not, we should create a signature unlock block
-        //             let signature = crate::stronghold::sign_transaction(
-        //                 &stronghold_path(account.storage_path()).await?,
-        //                 &essence.hash(),
-        //                 *account.index(),
-        //                 recorder.address_index,
-        //                 recorder.address_internal,
-        //             )
-        //             .await?;
-        //             unlock_blocks.push(UnlockBlock::Signature(signature.into()));
-        //             signature_indexes.insert(signature_index, current_block_index);
-        //         }
-        //     }
-        //     Ok(unlock_blocks)
-        return Err(crate::Error::InvalidTransactionId);
+        for (current_block_index, input) in inputs.iter().enumerate() {
+            // 44 is for BIP 44 (HD wallets) and 4218 is the registered index for IOTA https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+            let chain = Chain::from_u32_hardened(vec![
+                44,
+                4218,
+                *account.index() as u32,
+                input.address_internal as u32,
+                input.address_index as u32,
+            ]);
+            // Check if current path is same as previous path
+            // If so, add a reference unlock block
+            // Format to differentiate between public and internal addresses
+            let index = format!("{}{}", input.address_index, input.address_internal);
+            if let Some(block_index) = signature_indexes.get(&index) {
+                unlock_blocks.push(UnlockBlock::Reference(ReferenceUnlock::new(*block_index as u16)?));
+            } else {
+                // If not, we need to create a signature unlock block
+                let private_key = get_mnemonic_seed()?.derive(Curve::Ed25519, &chain)?.secret_key();
+                let public_key = private_key.public_key().to_bytes();
+                // The signature unlock block needs to sign the hash of the entire transaction essence of the
+                // transaction payload
+                let signature = Box::new(private_key.sign(&hashed_essence).to_bytes());
+                unlock_blocks.push(UnlockBlock::Signature(SignatureUnlock::Ed25519(Ed25519Signature::new(
+                    public_key, *signature,
+                ))));
+                signature_indexes.insert(index, current_block_index);
+            }
+        }
+        Ok(unlock_blocks)
     }
 }
 

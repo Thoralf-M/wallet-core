@@ -49,7 +49,7 @@ impl AccountBuilder {
             addresses: Vec::new(),
             locked_outputs: HashSet::new(),
             outputs: HashMap::new(),
-            transactions: HashSet::new(),
+            transactions: HashMap::new(),
             pending_transactions: HashSet::new(),
             // default options for testing
             client_options: self.client_options.clone().unwrap_or(

@@ -2,7 +2,7 @@ pub(crate) mod builder;
 pub(crate) mod handle;
 pub(crate) mod operations;
 pub(crate) mod types;
-pub use operations::address_generation::AddressGenerationOptions;
+pub use operations::{address_generation::AddressGenerationOptions, transfer::TransferOutput};
 
 use crate::{
     account::types::{address::AccountAddress, AccountBalance, OutputData},
@@ -11,7 +11,11 @@ use crate::{
 };
 
 use getset::{Getters, Setters};
-use iota_client::bee_message::{address::Address, output::OutputId, payload::transaction::TransactionId};
+use iota_client::bee_message::{
+    address::Address,
+    output::OutputId,
+    payload::transaction::{TransactionId, TransactionPayload},
+};
 use serde::{Deserialize, Serialize};
 
 use std::{
@@ -39,8 +43,9 @@ pub struct Account {
     // outputs used in transactions should be locked here so they don't get used again, resulting in conflicting
     // transactions
     locked_outputs: HashSet<OutputId>,
-    // stored separated from the account for performance and only the transaction id here?
-    transactions: HashSet<TransactionId>,
+    // stored separated from the account for performance and only the transaction id here? where to add the network id?
+    // transactions: HashSet<TransactionId>,
+    transactions: HashMap<TransactionId, TransactionPayload>,
     // Maybe pending transactions even additionally separated?
     pending_transactions: HashSet<TransactionId>,
     client_options: ClientOptions,

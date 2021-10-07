@@ -7,7 +7,8 @@ use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigB
 use log::LevelFilter;
 use std::time::Instant;
 use wallet_core::{
-    account_manager::AccountManager, client::options::ClientOptionsBuilder, signing::SignerType, Result,
+    account::TransferOutput, account_manager::AccountManager, client::options::ClientOptionsBuilder,
+    signing::SignerType, Result,
 };
 
 #[tokio::main]
@@ -61,32 +62,41 @@ async fn main() -> Result<()> {
     println!("Syncing took: {:.2?}", now.elapsed());
     println!("Balance: {:?}", balance);
 
-    // switch to mainnet
-    let client_options = ClientOptionsBuilder::new()
-        .with_node("https://chrysalis-nodes.iota.org/")?
-        .with_node("https://chrysalis-nodes.iota.cafe/")?
-        .with_node_sync_disabled()
-        .finish()
-        .unwrap();
-    manager.set_client_options(client_options).await?;
-    let now = Instant::now();
-    let balance = account.sync(None).await?;
-    println!("Syncing took: {:.2?}", now.elapsed());
-    println!("Balance: {:?}", balance);
+    // send transaction
+    let outputs = vec![TransferOutput {
+        address: "atoi1qzt0nhsf38nh6rs4p6zs5knqp6psgha9wsv74uajqgjmwc75ugupx3y7x0r".to_string(),
+        amount: 1_000_000,
+        output_kind: None,
+    }];
+    let message_id = account.send(outputs, None).await?;
+    println!("Message sent: https://explorer.iota.org/devnet/message/{}", message_id);
 
-    // switch back to testnet
-    let client_options = ClientOptionsBuilder::new()
-        .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
-        .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
-        .with_node("https://api.thin-hornet-1.h.chrysalis-devnet.iota.cafe")?
-        .with_node_sync_disabled()
-        .finish()
-        .unwrap();
-    manager.set_client_options(client_options).await?;
-    let now = Instant::now();
-    let balance = account.sync(None).await?;
-    println!("Syncing took: {:.2?}", now.elapsed());
-    println!("Balance: {:?}", balance);
+    // // switch to mainnet
+    // let client_options = ClientOptionsBuilder::new()
+    //     .with_node("https://chrysalis-nodes.iota.org/")?
+    //     .with_node("https://chrysalis-nodes.iota.cafe/")?
+    //     .with_node_sync_disabled()
+    //     .finish()
+    //     .unwrap();
+    // manager.set_client_options(client_options).await?;
+    // let now = Instant::now();
+    // let balance = account.sync(None).await?;
+    // println!("Syncing took: {:.2?}", now.elapsed());
+    // println!("Balance: {:?}", balance);
+
+    // // switch back to testnet
+    // let client_options = ClientOptionsBuilder::new()
+    //     .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
+    //     .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
+    //     .with_node("https://api.thin-hornet-1.h.chrysalis-devnet.iota.cafe")?
+    //     .with_node_sync_disabled()
+    //     .finish()
+    //     .unwrap();
+    // manager.set_client_options(client_options).await?;
+    // let now = Instant::now();
+    // let balance = account.sync(None).await?;
+    // println!("Syncing took: {:.2?}", now.elapsed());
+    // println!("Balance: {:?}", balance);
 
     Ok(())
 }

@@ -19,6 +19,7 @@ async-trait = "0.1.51"
 getset = "0.1.1"
 futures = "0.3.17"
 iota-crypto = { version = "0.7.0", features = ["std", "blake2b", "ed25519", "random", "slip10", "bip39", "bip39-en"]}
+hex = "0.4.3"
 
 # storage
 # rocksdb = { git="https://github.com/iotaledger/rust-rocksdb", rev = "70f2a53529ecc1853a2c025cec7f9d00bd50352c", default-features = false, features = ["lz4"] }

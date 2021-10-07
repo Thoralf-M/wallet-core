@@ -226,6 +226,10 @@ pub enum Error {
     /// Crypto.rs error
     #[error("{0}")]
     Crypto(#[from] crypto::Error),
+    #[cfg(feature = "mnemonic")]
+    /// Mnemonic not set error
+    #[error("mnemonic not set")]
+    MnemonicNotSet,
 }
 
 // impl Drop for Error {
@@ -364,6 +368,8 @@ impl serde::Serialize for Error {
             Self::TryFromInt(_) => serialize_variant(self, serializer, "TryFromInt"),
             #[cfg(feature = "mnemonic")]
             Self::Crypto(_) => serialize_variant(self, serializer, "Crypto"),
+            #[cfg(feature = "mnemonic")]
+            Self::MnemonicNotSet => serialize_variant(self, serializer, "MnemonicNotSet"),
         }
     }
 }

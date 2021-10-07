@@ -46,9 +46,7 @@ impl AccountHandle {
         outputs: Vec<TransferOutput>,
         options: Option<TransferOptions>,
     ) -> crate::Result<MessageId> {
-        // should we lock the account already already here?
-        let account = self.account.write().await;
-        send_transfer(&account, outputs, options).await
+        send_transfer(self, outputs, options).await
     }
 
     /// Reattaches or promotes a message to get it confirmed
@@ -87,6 +85,7 @@ impl AccountHandle {
     pub(crate) async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
         let mut account = self.account.write().await;
         account.client_options = options;
+        // do we need to update the bech32_hrp for all addresses here?
         drop(account);
         // after we set the new client options we should sync the account because the network could have changed
         // we sync with all addresses, because otherwise the balance wouldn't get updated if an address doesn't has

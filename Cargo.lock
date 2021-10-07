@@ -1922,6 +1922,7 @@ dependencies = [
  "async-trait",
  "futures",
  "getset",
+ "hex",
  "iota-client",
  "iota-crypto 0.7.0",
  "log",

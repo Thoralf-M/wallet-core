@@ -138,8 +138,6 @@ pub(crate) async fn get_signer(signer_type: &SignerType) -> SignerHandle {
 #[derive(Getters)]
 #[getset(get = "pub")]
 pub struct SignMessageMetadata<'a> {
-    /// The transfer's address that has remainder value if any.
-    pub remainder_address: Option<&'a Address>,
     /// The transfer's remainder value.
     pub remainder_value: u64,
     /// The transfer's deposit address for the remainder value if any.
