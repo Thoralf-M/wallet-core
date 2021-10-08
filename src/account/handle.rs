@@ -12,7 +12,7 @@ use crate::{
     client::options::ClientOptions,
 };
 
-use iota_client::bee_message::MessageId;
+use iota_client::bee_message::{output::OutputId, MessageId};
 use tokio::sync::RwLock;
 
 use std::{ops::Deref, str::FromStr, sync::Arc};
@@ -72,12 +72,31 @@ impl AccountHandle {
 
     /// Get the total and available blance of an account
     pub async fn balance(&self) -> crate::Result<AccountBalance> {
+        log::debug!("[BALANCE] get balance");
         let account = self.account.read().await;
         let total_balance: u64 = account.addresses.iter().map(|a| a.balance()).sum();
         // for `available` get locked_outputs, sum outputs balance and substract from total_balance
+        log::debug!("[BALANCE] locked outputs: {:#?}", account.locked_outputs);
+        let mut locked_balance = 0;
+        for (address, outputs) in account.outputs.iter() {
+            for output in outputs {
+                if account
+                    .locked_outputs
+                    .contains(&OutputId::new(output.transaction_id, output.index)?)
+                {
+                    log::debug!("[BALANCE] locked output: {:#?}", output);
+                    locked_balance += output.amount;
+                }
+            }
+        }
+        log::debug!(
+            "[BALANCE] total_balance: {}, lockedbalance: {}",
+            total_balance,
+            locked_balance
+        );
         Ok(AccountBalance {
             total: total_balance,
-            available: 0,
+            available: total_balance - locked_balance,
         })
     }
 

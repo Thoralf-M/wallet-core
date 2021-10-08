@@ -78,7 +78,8 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
 
     // ignore outputs and transactions from other networks
     // check if outputs are unspent, rebroadcast, reattach...
-    // sync_transactions(){
+    // also revalidate that the locked outputs needs to be there, maybe there was a conflict or the transaction got
+    // confirmed, then they should get removed sync_transactions(){
     // retry(message_id, sync: false)
     // }.await?;
     // only when actively called or also in the background syncing?
@@ -112,7 +113,16 @@ async fn update_account(
         account
             .outputs
             .entry(output.address.inner)
-            .and_modify(|outputs| outputs.push(output.clone()))
+            .and_modify(|outputs| {
+                // update output or insert it
+                let r = outputs
+                    .binary_search_by_key(&(output.transaction_id, output.index), |a| (a.transaction_id, a.index));
+                if let Ok(index) = r {
+                    outputs[index] = output.clone();
+                } else {
+                    outputs.push(output.clone())
+                }
+            })
             .or_insert_with(|| vec![output]);
     }
     // println!("{:#?}", account);

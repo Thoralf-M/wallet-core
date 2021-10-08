@@ -110,9 +110,24 @@ pub async fn send_transfer(
         }
     };
     let inputs = select_inputs(account_handle, amount, custom_inputs).await?;
+    // can we unlock the outputs in a better way if the transaction creation fails?
     let (essence, inputs_for_signing, remainder) =
-        create_transaction(account_handle, inputs, outputs.clone(), options).await?;
-    let transaction_payload = sign_tx_essence(account_handle, essence, inputs_for_signing, remainder).await?;
+        match create_transaction(account_handle, inputs.clone(), outputs.clone(), options).await {
+            Ok(res) => res,
+            Err(err) => {
+                // unlock outputs so they are available for a new transaction
+                unlock_inputs(account_handle, inputs).await?;
+                return Err(err);
+            }
+        };
+    let transaction_payload = match sign_tx_essence(account_handle, essence, inputs_for_signing, remainder).await {
+        Ok(res) => res,
+        Err(err) => {
+            // unlock outputs so they are available for a new transaction
+            unlock_inputs(account_handle, inputs).await?;
+            return Err(err);
+        }
+    };
     // store transaction payload to account (with db feature also store the account to the db) here before sending
     let mut account = account_handle.write().await;
     account
@@ -121,6 +136,18 @@ pub async fn send_transfer(
     drop(account);
     submit_transaction_payload(account_handle, transaction_payload).await
 }
+
+// unlock outputs
+async fn unlock_inputs(account_handle: &AccountHandle, inputs: Vec<OutputData>) -> crate::Result<()> {
+    let mut account = account_handle.write().await;
+    for output in &inputs {
+        account
+            .locked_outputs
+            .remove(&OutputId::new(output.transaction_id, output.index)?);
+    }
+    Ok(())
+}
+
 /// Function to build the transaction essence
 async fn create_transaction(
     account_handle: &AccountHandle,

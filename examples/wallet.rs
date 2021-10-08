@@ -7,8 +7,11 @@ use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigB
 use log::LevelFilter;
 use std::time::Instant;
 use wallet_core::{
-    account::TransferOutput, account_manager::AccountManager, client::options::ClientOptionsBuilder,
-    signing::SignerType, Result,
+    account::{AddressGenerationOptions, TransferOutput},
+    account_manager::AccountManager,
+    client::options::ClientOptionsBuilder,
+    signing::SignerType,
+    Result,
 };
 
 #[tokio::main]
@@ -51,7 +54,17 @@ async fn main() -> Result<()> {
     // let accounts = manager.get_accounts().await?;
     // println!("Accounts: {:?}", accounts);
 
-    let _address = account.generate_addresses(4, None).await?;
+    let _address = account.generate_addresses(5, None).await?;
+    // generate internal addresses because they are used for the remainder
+    let _address = account
+        .generate_addresses(
+            10,
+            Some(AddressGenerationOptions {
+                internal: true,
+                ..Default::default()
+            }),
+        )
+        .await?;
     // println!("Generated a new address: {:?}", _address);
 
     let addresses = account.list_addresses().await?;
@@ -70,6 +83,11 @@ async fn main() -> Result<()> {
     }];
     let message_id = account.send(outputs, None).await?;
     println!("Message sent: https://explorer.iota.org/devnet/message/{}", message_id);
+
+    let now = Instant::now();
+    let balance = account.sync(None).await?;
+    println!("Syncing took: {:.2?}", now.elapsed());
+    println!("Balance: {:?}", balance);
 
     // // switch to mainnet
     // let client_options = ClientOptionsBuilder::new()
