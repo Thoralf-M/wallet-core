@@ -1,7 +1,6 @@
 use crate::account::{
     handle::AccountHandle,
     types::{OutputData, OutputKind},
-    Account,
 };
 
 use iota_client::bee_message::output::OutputId;

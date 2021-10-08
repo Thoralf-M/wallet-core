@@ -1,4 +1,5 @@
 pub(crate) mod addresses;
+pub mod options;
 pub(crate) mod outputs;
 
 use crate::account::{
@@ -6,56 +7,11 @@ use crate::account::{
     types::{address::AccountAddress, OutputData},
     AccountBalance,
 };
-
-use serde::{Deserialize, Serialize};
+pub use options::SyncOptions;
 
 use std::time::Instant;
 
 const SYNC_CHUNK_SIZE: usize = 500;
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct SyncOptions {
-    #[serde(
-        rename = "outputConsolidationThreshold",
-        default = "default_output_consolidation_threshold"
-    )]
-    pub output_consolidation_threshold: usize,
-    #[serde(
-        rename = "automaticOutputConsolidation",
-        default = "default_automatic_output_consolidation"
-    )]
-    pub automatic_output_consolidation: bool,
-    // 0 by default, using a higher value could result in a wrong balance since addresses with a lower index aren't
-    // synced
-    #[serde(rename = "addressStartIndex", default = "default_address_start_index")]
-    pub address_start_index: usize,
-    // 0 by default, no new address should be generated during syncing
-    #[serde(rename = "gapLimit", default = "default_gap_limit")]
-    pub gap_limit: usize,
-    #[serde(rename = "syncSpentOutputs", default)]
-    pub sync_spent_outputs: bool,
-    // Syncs all addresses of the account and not only the ones with balance (required when syncing the account in a
-    // new network, because addresses that had balance in the old network, but not in the new one, wouldn't get
-    // updated)
-    #[serde(rename = "syncAllAddresses", default)]
-    pub sync_all_addresses: bool,
-}
-
-fn default_output_consolidation_threshold() -> usize {
-    100
-}
-
-fn default_automatic_output_consolidation() -> bool {
-    true
-}
-
-fn default_address_start_index() -> usize {
-    0
-}
-
-fn default_gap_limit() -> usize {
-    0
-}
 
 /// Syncs an account
 pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions) -> crate::Result<AccountBalance> {

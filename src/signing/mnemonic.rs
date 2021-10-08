@@ -11,21 +11,14 @@ use crypto::{
         slip10::{Chain, Curve, Seed},
     },
 };
-use iota_client::{
-    bee_message::{
-        address::{Address, Ed25519Address},
-        signature::{Ed25519Signature, SignatureUnlock},
-        unlock::{ReferenceUnlock, UnlockBlock},
-    },
-    Client,
+use iota_client::bee_message::{
+    address::{Address, Ed25519Address},
+    signature::{Ed25519Signature, SignatureUnlock},
+    unlock::{ReferenceUnlock, UnlockBlock},
 };
 use once_cell::sync::OnceCell;
 
-use std::{
-    collections::HashMap,
-    ops::Range,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, path::Path};
 
 #[derive(Default)]
 pub struct MnemonicSigner;

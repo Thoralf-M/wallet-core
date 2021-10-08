@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
     // generate internal addresses because they are used for the remainder
     let _address = account
         .generate_addresses(
-            10,
+            15,
             Some(AddressGenerationOptions {
                 internal: true,
                 ..Default::default()
