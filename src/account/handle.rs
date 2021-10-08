@@ -84,7 +84,7 @@ impl AccountHandle {
                     .locked_outputs
                     .contains(&OutputId::new(output.transaction_id, output.index)?)
                 {
-                    log::debug!("[BALANCE] locked output: {:#?}", output);
+                    // log::debug!("[BALANCE] locked output: {:#?}", output);
                     locked_balance += output.amount;
                 }
             }

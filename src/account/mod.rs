@@ -2,7 +2,10 @@ pub(crate) mod builder;
 pub(crate) mod handle;
 pub(crate) mod operations;
 pub(crate) mod types;
-pub use operations::{address_generation::AddressGenerationOptions, transfer::TransferOutput};
+pub use operations::{
+    address_generation::AddressGenerationOptions,
+    transfer::{RemainderValueStrategy, TransferOptions, TransferOutput},
+};
 
 use crate::{
     account::types::{address::AccountAddress, AccountBalance, OutputData},

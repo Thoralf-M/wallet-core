@@ -17,7 +17,7 @@ use iota_client::bee_message::{
 
 const DUST_ALLOWANCE_VALUE: u64 = 1_000_000;
 
-// Data for signing metadata
+// Data for signing metadata (used for ledger signer)
 pub(crate) struct Remainder {
     address: Address,
     amount: u64,

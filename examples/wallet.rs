@@ -7,7 +7,7 @@ use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigB
 use log::LevelFilter;
 use std::time::Instant;
 use wallet_core::{
-    account::{AddressGenerationOptions, TransferOutput},
+    account::{AddressGenerationOptions, RemainderValueStrategy, TransferOptions, TransferOutput},
     account_manager::AccountManager,
     client::options::ClientOptionsBuilder,
     signing::SignerType,
@@ -55,17 +55,17 @@ async fn main() -> Result<()> {
     // println!("Accounts: {:?}", accounts);
 
     let _address = account.generate_addresses(5, None).await?;
+    // println!("Generated a new address: {}", _address[0].address().to_bech32());
     // generate internal addresses because they are used for the remainder
-    let _address = account
-        .generate_addresses(
-            15,
-            Some(AddressGenerationOptions {
-                internal: true,
-                ..Default::default()
-            }),
-        )
-        .await?;
-    // println!("Generated a new address: {:?}", _address);
+    // let _address = account
+    //     .generate_addresses(
+    //         20,
+    //         Some(AddressGenerationOptions {
+    //             internal: true,
+    //             ..Default::default()
+    //         }),
+    //     )
+    //     .await?;
 
     let addresses = account.list_addresses().await?;
     println!("Addresses: {}", addresses.len());
@@ -81,7 +81,16 @@ async fn main() -> Result<()> {
         amount: 1_000_000,
         output_kind: None,
     }];
-    let message_id = account.send(outputs, None).await?;
+    // let message_id = account.send(outputs, None).await?;
+    let message_id = account
+        .send(
+            outputs,
+            Some(TransferOptions {
+                remainder_value_strategy: RemainderValueStrategy::ReuseAddress,
+                ..Default::default()
+            }),
+        )
+        .await?;
     println!("Message sent: https://explorer.iota.org/devnet/message/{}", message_id);
 
     let now = Instant::now();
