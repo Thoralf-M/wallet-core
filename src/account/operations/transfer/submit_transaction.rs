@@ -12,13 +12,22 @@ pub(crate) async fn submit_transaction_payload(
 ) -> crate::Result<MessageId> {
     log::debug!("[TRANSFER] send_payload");
     let account = account_handle.read().await;
-    let client = crate::client::get_client(&account.client_options).await?;
+    let client_options = account.client_options.clone();
     drop(account);
+    let client = crate::client::get_client(&client_options).await?;
     let client = client.read().await;
-    log::debug!("[TRANSFER] doing pow if local pow is used");
+    if *client_options.local_pow() {
+        log::debug!("[TRANSFER] doing local pow");
+    }
     let message = finish_pow(&client, Some(Payload::Transaction(Box::new(transaction_payload)))).await?;
     log::debug!("[TRANSFER] submitting message {:#?}", message);
     let message_id = client.post_message(&message).await?;
-    // spawn a thread which tries to get the message confirmed?
+    // spawn a thread which tries to get the message confirmed
+    tokio::spawn(async move {
+        if let Ok(client) = crate::client::get_client(&client_options).await {
+            let client = client.read().await;
+            let _ = client.retry_until_included(&message_id, None, None).await;
+        }
+    });
     Ok(message_id)
 }

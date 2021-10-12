@@ -4,7 +4,7 @@ use getset::Getters;
 use iota_client::bee_message::payload::transaction::TransactionId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum WalletEvent {
     BalanceChange(BalanceChangeEvent),
     TransactionInclusion(TransactionInclusionEvent),
@@ -13,25 +13,33 @@ pub enum WalletEvent {
     ConsolidationRequired(usize),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum WalletEventType {
+    BalanceChange,
+    TransactionInclusion,
+    TransferProgress,
+    ConsolidationRequired,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct BalanceChangeEvent {
     /// Associated account.
-    account_id: String,
+    pub account_id: String,
     /// The address.
-    address: AddressWrapper,
+    pub address: AddressWrapper,
     /// The balance change data.
-    balance_change: i64,
+    pub balance_change: i64,
     /// Total account balance
-    new_balance: u64,
+    pub new_balance: u64,
     // the output/transaction?
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TransactionInclusionEvent {
-    transaction_id: TransactionId,
-    inclusion_state: InclusionState,
+    pub transaction_id: TransactionId,
+    pub inclusion_state: InclusionState,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum InclusionState {
     Confirmed,
     Conflicting,
@@ -39,7 +47,7 @@ pub enum InclusionState {
              * the tx? */
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TransferProgressEvent {
     #[serde(rename = "accountId")]
     /// The associated account identifier.
@@ -48,7 +56,7 @@ pub struct TransferProgressEvent {
     pub status: TransferStatusType,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum TransferStatusType {
     /// Syncing account.
     SyncingAccount,
@@ -66,7 +74,7 @@ pub enum TransferStatusType {
     Broadcasting,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct AddressConsolidationNeeded {
     /// The associated account identifier.
     #[serde(rename = "accountId")]
@@ -76,7 +84,7 @@ pub struct AddressConsolidationNeeded {
     pub address: AddressWrapper,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct LedgerAddressGeneration {
     #[serde(rename = "accountId")]
     /// The associated account identifier.
@@ -86,7 +94,7 @@ pub struct LedgerAddressGeneration {
 }
 
 /// Address event data.
-#[derive(Serialize, Deserialize, Clone, Debug, Getters)]
+#[derive(Debug, Clone, Serialize, Deserialize, Getters, PartialEq, Eq, Hash)]
 #[getset(get = "pub")]
 pub struct AddressData {
     /// The address.
@@ -95,7 +103,7 @@ pub struct AddressData {
 }
 
 /// Prepared transaction event data.
-#[derive(Clone, Debug, Getters, Serialize, Deserialize)]
+#[derive(Debug, Clone, Getters, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[getset(get = "pub")]
 pub struct PreparedTransactionData {
     /// Transaction inputs.
@@ -107,7 +115,7 @@ pub struct PreparedTransactionData {
 }
 
 /// Input or output data for PreparedTransactionData
-#[derive(Clone, Debug, Getters, Serialize, Deserialize)]
+#[derive(Debug, Clone, Getters, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[getset(get = "pub")]
 pub struct TransactionIO {
     /// Address

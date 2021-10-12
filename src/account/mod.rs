@@ -1,7 +1,7 @@
 pub(crate) mod builder;
 pub(crate) mod handle;
 pub(crate) mod operations;
-pub(crate) mod types;
+pub mod types;
 pub use operations::{
     address_generation::AddressGenerationOptions,
     transfer::{RemainderValueStrategy, TransferOptions, TransferOutput},

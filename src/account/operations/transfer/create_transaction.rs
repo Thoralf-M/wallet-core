@@ -5,7 +5,7 @@ use crate::{
             address_generation::AddressGenerationOptions,
             transfer::{Remainder, RemainderValueStrategy, TransferOptions, TransferOutput, DUST_ALLOWANCE_VALUE},
         },
-        types::{address::AccountAddress, OutputData},
+        types::{address::AccountAddress, OutputData, OutputKind},
     },
     signing::TransactionInput,
 };
@@ -88,8 +88,9 @@ pub(crate) async fn create_transaction(
     // Add remainder output
     let mut remainder = None;
     if remainder_value != 0 {
+        let options_ = options.clone().unwrap_or_default();
         let remainder_address = {
-            match options.clone().unwrap_or_default().remainder_value_strategy {
+            match options_.remainder_value_strategy {
                 RemainderValueStrategy::ReuseAddress => inputs.first().expect("no input provided").address.clone(),
                 RemainderValueStrategy::ChangeAddress => account_handle
                     .generate_addresses(
@@ -111,8 +112,12 @@ pub(crate) async fn create_transaction(
             address: remainder_address.inner,
             amount: remainder_value,
         });
-        outputs_for_essence
-            .push(SignatureLockedDustAllowanceOutput::new(remainder_address.inner, remainder_value)?.into());
+        match options_.remainder_output_kind {
+            Some(OutputKind::SignatureLockedDustAllowance) => outputs_for_essence
+                .push(SignatureLockedDustAllowanceOutput::new(remainder_address.inner, remainder_value)?.into()),
+            _ => outputs_for_essence
+                .push(SignatureLockedSingleOutput::new(remainder_address.inner, remainder_value)?.into()),
+        }
     }
 
     // Build transaction essence

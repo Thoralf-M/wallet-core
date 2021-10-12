@@ -61,6 +61,9 @@ impl AccountHandle {
         options: Option<AddressGenerationOptions>,
     ) -> crate::Result<Vec<AccountAddress>> {
         let options = options.unwrap_or_default();
+        // todo remove
+        let emitter = crate::events::EVENT_EMITTER.lock().await;
+        emitter.emit(crate::events::types::WalletEvent::ConsolidationRequired(0));
         address_generation::generate_addresses(self, amount, options).await
     }
 

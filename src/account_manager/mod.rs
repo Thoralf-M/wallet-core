@@ -5,7 +5,10 @@ use crate::{
         builder::AccountBuilder, handle::AccountHandle, operations::syncing::SyncOptions, types::AccountIdentifier,
     },
     client::options::ClientOptions,
-    events::WalletEvent,
+    events::{
+        types::{WalletEvent, WalletEventType},
+        EventEmitter,
+    },
     signing::SignerType,
 };
 use builder::AccountManagerBuilder;
@@ -27,6 +30,8 @@ impl AccountManager {
         AccountManagerBuilder::new()
     }
 
+    /// Create a new account
+    // todo: how to add further options like alias?
     pub async fn create_account(&self, options: Option<ClientOptions>) -> crate::Result<AccountHandle> {
         log::debug!("creating account");
         // create account so it compiles
@@ -116,8 +121,16 @@ impl AccountManager {
         Ok(())
     }
 
-    // listen to all wallet events
-    // pub fn listen() -> crate::Result<(Sender<WalletEvent>, Receiver<WalletEvent>)> {}
+    /// Listen to wallet events, empty vec will listen to all events
+    pub async fn listen<F>(&self, events: Vec<WalletEventType>, handler: F)
+    where
+        F: Fn(&WalletEvent) + 'static + Clone + Send + Sync,
+    {
+        let mut emitter = crate::events::EVENT_EMITTER.lock().await;
+        emitter.on(events, handler);
+        // todo remove
+        emitter.emit(WalletEvent::ConsolidationRequired(0));
+    }
 
     /// Generates a new random mnemonic.
     pub fn generate_mnemonic(&self) -> crate::Result<String> {

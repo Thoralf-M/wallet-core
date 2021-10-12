@@ -7,7 +7,7 @@ use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigB
 use log::LevelFilter;
 use std::time::Instant;
 use wallet_core::{
-    account::{AddressGenerationOptions, RemainderValueStrategy, TransferOptions, TransferOutput},
+    account::{types::OutputKind, AddressGenerationOptions, RemainderValueStrategy, TransferOptions, TransferOutput},
     account_manager::AccountManager,
     client::options::ClientOptionsBuilder,
     signing::SignerType,
@@ -79,7 +79,8 @@ async fn main() -> Result<()> {
     let outputs = vec![TransferOutput {
         address: "atoi1qzt0nhsf38nh6rs4p6zs5knqp6psgha9wsv74uajqgjmwc75ugupx3y7x0r".to_string(),
         amount: 1_000_000,
-        output_kind: None,
+        // we create a dust allowance outputs so we can reuse the address even with remainder
+        output_kind: Some(OutputKind::SignatureLockedDustAllowance),
     }];
     // let message_id = account.send(outputs, None).await?;
     let message_id = account

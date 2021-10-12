@@ -7,11 +7,11 @@ use serde::{Deserialize, Serialize};
 pub struct TransferOptions {
     #[serde(rename = "remainderValueStrategy", default)]
     pub remainder_value_strategy: RemainderValueStrategy,
+    #[serde(rename = "remainderOutputKind", default)]
+    pub remainder_output_kind: Option<OutputKind>,
     pub indexation: Option<IndexationPayload>,
     #[serde(rename = "skipSync", default)]
     pub skip_sync: bool,
-    #[serde(rename = "outputKind", default)]
-    pub output_kind: Option<OutputKind>,
     #[serde(rename = "customInputs", default)]
     pub custom_inputs: Option<Vec<OutputId>>,
 }
