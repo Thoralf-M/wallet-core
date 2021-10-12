@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
 
     // Get account or create a new one
     let account_alias = "event_account";
-    let mnemonic = "until fire hat mountain zoo grocery real deny advance change marble taste goat ivory wheat bubble panic banner tattoo client ticket action race rocket".to_string();
+    let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
     manager.store_mnemonic(SignerType::Mnemonic, Some(mnemonic)).await?;
     let account = match manager.get_account(account_alias.to_string()).await {
         Ok(account) => account,

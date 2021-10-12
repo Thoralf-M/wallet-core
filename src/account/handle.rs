@@ -46,6 +46,15 @@ impl AccountHandle {
         outputs: Vec<TransferOutput>,
         options: Option<TransferOptions>,
     ) -> crate::Result<MessageId> {
+        // sync account before sending a transaction
+        sync_account(
+            self,
+            &SyncOptions {
+                automatic_output_consolidation: false,
+                ..Default::default()
+            },
+        )
+        .await?;
         send_transfer(self, outputs, options).await
     }
 

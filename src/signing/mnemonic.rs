@@ -164,7 +164,7 @@ mod tests {
 
         use std::path::Path;
 
-        let mnemonic = "until fire hat mountain zoo grocery real deny advance change marble taste goat ivory wheat bubble panic banner tattoo client ticket action race rocket".to_string();
+        let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
         super::MnemonicSigner
             .store_mnemonic(&Path::new(""), mnemonic)
             .await

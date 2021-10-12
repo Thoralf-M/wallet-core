@@ -22,6 +22,7 @@ pub(crate) async fn submit_transaction_payload(
     let message = finish_pow(&client, Some(Payload::Transaction(Box::new(transaction_payload)))).await?;
     log::debug!("[TRANSFER] submitting message {:#?}", message);
     let message_id = client.post_message(&message).await?;
+    log::debug!("[TRANSFER] submitted message {}", message_id);
     // spawn a thread which tries to get the message confirmed
     tokio::spawn(async move {
         if let Ok(client) = crate::client::get_client(&client_options).await {
