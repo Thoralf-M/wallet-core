@@ -39,6 +39,10 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
         return Ok(last_synced.1.clone());
     }
 
+    // sync transactions first so we maybe get confirmed outputs in the syncing process later
+    // do we want a field in SyncOptions so it can be skipped?
+    let (synced_transactions, spent_output_ids) = transactions::sync_transactions(account_handle).await?;
+
     // we get the balance first because it's a less heavy operation for the nodes
     let addresses_with_balance = addresses::get_addresses_with_balance(account_handle, options).await?;
     log::debug!("[SYNC] found {} addresses_with_balance", addresses_with_balance.len());
@@ -52,7 +56,6 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
     let output_responses = outputs::get_outputs(account_handle, options, new_output_ids.clone()).await?;
     let outputs = outputs::output_response_to_output_data(account_handle, output_responses).await?;
 
-    let (synced_transactions, spent_output_ids) = transactions::sync_transactions(account_handle).await?;
     // only when actively called or also in the background syncing?
     // consolidate_outputs().await?;
 

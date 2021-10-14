@@ -2,7 +2,7 @@
 mod create_transaction;
 mod options;
 mod sign_transaction;
-mod submit_transaction;
+pub(crate) mod submit_transaction;
 
 use crate::account::{
     handle::AccountHandle,
