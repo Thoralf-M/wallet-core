@@ -18,12 +18,6 @@ pub struct AccountAddress {
     /// Determines if an address is a public or an internal (change) address.
     #[getset(set = "pub(crate)")]
     pub(crate) internal: bool,
-    // /// The address outputs.
-    // //make this a HashSet to store the outputs separated? add the network id here?
-    // #[getset(set = "pub(crate)")]
-    // pub(crate) outputs: HashMap<OutputId, AddressOutput>,
-    // should only hold the current unspent outputs, spent outputs can be retrieved from all outputs
-    pub(crate) outputs: HashSet<OutputId>,
     /// Balance
     // do we want this field? if we want to keep it, do we need to validate that the amount of the outputs matches?
     // What happens if we don't get all outputs because of the API limit?

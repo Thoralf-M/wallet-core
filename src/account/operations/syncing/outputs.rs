@@ -89,7 +89,7 @@ pub(crate) fn get_output_amount_and_address(output: &OutputDto) -> crate::Result
 pub(crate) async fn get_outputs(
     account_handle: &AccountHandle,
     options: &SyncOptions,
-    addresses_with_output_ids: Vec<AccountAddress>,
+    output_ids: Vec<OutputId>,
 ) -> crate::Result<Vec<OutputResponse>> {
     log::debug!("[SYNC] start get_outputs");
     let get_outputs_sync_start_time = Instant::now();
@@ -97,12 +97,6 @@ pub(crate) async fn get_outputs(
 
     let client_guard = crate::client::get_client(&account.client_options).await?;
     drop(account);
-
-    let output_ids: Vec<OutputId> = addresses_with_output_ids
-        .into_iter()
-        .map(|address| address.outputs.into_iter())
-        .flatten()
-        .collect();
 
     let mut found_outputs = Vec::new();
     // We split the outputs into chunks so we don't get timeouts if we have thousands

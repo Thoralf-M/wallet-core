@@ -15,11 +15,7 @@ pub(crate) async fn get_addresses_with_balance(
     log::debug!("[SYNC] start get_addresses_with_balance");
     let balance_sync_start_time = Instant::now();
     let account = account_handle.read().await;
-    let mut address_before_syncing = account.addresses().clone();
-    // clear output ids, because we will sync the new ones and if we change the network we wouldn't find them
-    for address in address_before_syncing.iter_mut() {
-        address.outputs = HashSet::new();
-    }
+    let address_before_syncing = account.addresses().clone();
 
     let client_guard = crate::client::get_client(&account.client_options).await?;
     drop(account);
@@ -73,7 +69,7 @@ pub(crate) async fn get_address_output_ids(
     account_handle: &AccountHandle,
     options: &SyncOptions,
     addresses_with_balance: Vec<AccountAddress>,
-) -> crate::Result<Vec<AccountAddress>> {
+) -> crate::Result<Vec<OutputId>> {
     log::debug!("[SYNC] start get_address_output_ids");
     let address_outputs_sync_start_time = Instant::now();
     let account = account_handle.read().await;
@@ -81,7 +77,7 @@ pub(crate) async fn get_address_output_ids(
     let client_guard = crate::client::get_client(&account.client_options).await?;
     drop(account);
 
-    let mut addresses_with_found_outputs = Vec::new();
+    let mut found_outputs = Vec::new();
     // We split the addresses into chunks so we don't get timeouts if we have thousands
     for addresses_chunk in addresses_with_balance
         .chunks(SYNC_CHUNK_SIZE)
@@ -106,12 +102,11 @@ pub(crate) async fn get_address_output_ids(
         }
         let results = futures::future::try_join_all(tasks).await?;
         for res in results {
-            let (mut address, outputs_response) = res?;
+            let (address, outputs_response) = res?;
             if !outputs_response.output_ids.is_empty() || options.sync_all_addresses {
                 for output_id in &outputs_response.output_ids {
-                    address.outputs.insert(OutputId::from_str(output_id)?);
+                    found_outputs.push(OutputId::from_str(output_id)?);
                 }
-                addresses_with_found_outputs.push(address);
             }
         }
     }
@@ -120,5 +115,5 @@ pub(crate) async fn get_address_output_ids(
         address_outputs_sync_start_time.elapsed()
     );
     // addresses with current outputs, historic outputs are ignored
-    Ok(addresses_with_found_outputs)
+    Ok(found_outputs)
 }

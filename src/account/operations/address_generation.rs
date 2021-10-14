@@ -63,7 +63,6 @@ pub async fn generate_addresses(
             address: AddressWrapper::new(address, bech32_hrp.clone()),
             key_index: address_index,
             internal: options.internal,
-            outputs: HashSet::new(),
             balance: 0,
             used: false,
         });

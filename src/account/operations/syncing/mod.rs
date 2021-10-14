@@ -15,7 +15,8 @@ use iota_client::bee_message::output::OutputId;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 const SYNC_CHUNK_SIZE: usize = 500;
-// ms since the last sync operation
+// ms before an account actually syncs with the network, before it just returns the previous syncing result
+// this is done to prevent unnecessary simultaneous synchronizations
 const MIN_SYNC_INTERVAL: u128 = 5000;
 
 /// Syncs an account
@@ -43,12 +44,12 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
     log::debug!("[SYNC] found {} addresses_with_balance", addresses_with_balance.len());
 
     // get outputs only for addresses that have > 0 as balance
-    let addresses_with_new_output_ids =
-        addresses::get_address_output_ids(account_handle, options, addresses_with_balance).await?;
+    let new_output_ids =
+        addresses::get_address_output_ids(account_handle, options, addresses_with_balance.clone()).await?;
     // only set unspent output ids? That way we keep the account size smaller, spent outputs can still be stored also
     // from different networks, but will have no impact
 
-    let output_responses = outputs::get_outputs(account_handle, options, addresses_with_new_output_ids.clone()).await?;
+    let output_responses = outputs::get_outputs(account_handle, options, new_output_ids.clone()).await?;
     let outputs = outputs::output_response_to_output_data(account_handle, output_responses).await?;
 
     let (synced_transactions, spent_output_ids) = transactions::sync_transactions(account_handle).await?;
@@ -58,7 +59,7 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
     // update account with balances, output ids, outputs
     update_account(
         account_handle,
-        addresses_with_new_output_ids,
+        addresses_with_balance,
         outputs,
         synced_transactions,
         spent_output_ids,
@@ -81,19 +82,20 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
 /// Update account with newly synced data
 async fn update_account(
     account_handle: &AccountHandle,
-    addresses_with_new_output_ids: Vec<AccountAddress>,
+    addresses_with_balance: Vec<AccountAddress>,
     outputs: Vec<OutputData>,
     synced_transactions: Vec<Transaction>,
     spent_output_ids: Vec<OutputId>,
 ) -> crate::Result<()> {
     let mut account = account_handle.write().await;
-    for address in addresses_with_new_output_ids {
+    for address in addresses_with_balance {
         let r = account
             .addresses
             .binary_search_by_key(&(address.key_index, address.internal), |a| (a.key_index, a.internal));
         if let Ok(index) = r {
             account.addresses[index].balance = address.balance;
-            account.addresses[index].outputs.extend(address.outputs);
+            // if the address has balance, then it's also used
+            account.addresses[index].used = true;
         }
     }
     for output in outputs {
