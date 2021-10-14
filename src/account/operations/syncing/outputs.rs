@@ -20,7 +20,10 @@ use iota_client::{
     },
 };
 
-use std::{str::FromStr, time::Instant};
+use std::{
+    str::FromStr,
+    time::{Instant, SystemTime, UNIX_EPOCH},
+};
 
 /// Convert OutputResponse to OutputData with the network_id added
 pub(crate) async fn output_response_to_output_data(
@@ -37,6 +40,13 @@ pub(crate) async fn output_response_to_output_data(
         .into_iter()
         .map(|output| {
             let (amount, address, output_kind) = get_output_amount_and_address(&output.output)?;
+            let transaction_id = TransactionId::from_str(&output.transaction_id)?;
+            let remainder = {
+                match account.transactions.get(&transaction_id) {
+                    Some(tx) => !tx.incoming,
+                    None => false,
+                }
+            };
             Ok(OutputData {
                 transaction_id: TransactionId::from_str(&output.transaction_id)?,
                 index: output.output_index,
@@ -46,6 +56,11 @@ pub(crate) async fn output_response_to_output_data(
                 address: AddressWrapper::new(address, bech32_hrp.clone()),
                 kind: output_kind,
                 network_id,
+                remainder,
+                timestamp: SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .expect("Time went backwards")
+                    .as_millis(),
             })
         })
         .collect::<crate::Result<Vec<OutputData>>>()

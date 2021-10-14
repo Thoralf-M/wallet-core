@@ -97,6 +97,8 @@ pub struct OutputData {
     /// Network ID
     #[serde(rename = "networkId")]
     pub network_id: u64,
+    pub timestamp: u128,
+    pub remainder: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
