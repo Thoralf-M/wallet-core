@@ -13,7 +13,7 @@ use crate::{
 };
 
 use iota_client::bee_message::{output::OutputId, MessageId};
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 
 use std::{ops::Deref, str::FromStr, sync::Arc};
 
@@ -21,12 +21,16 @@ use std::{ops::Deref, str::FromStr, sync::Arc};
 #[derive(Debug, Clone)]
 pub struct AccountHandle {
     account: Arc<RwLock<Account>>,
+    // mutex to prevent multipls sync calls at the same time, returnning the last synced result if the time was < 1?
+    // second ago the u64 is a timestamp
+    pub(crate) last_synced: Arc<Mutex<(u128, AccountBalance)>>,
 }
 
 impl AccountHandle {
     pub(crate) fn new(account: Account) -> Self {
         Self {
             account: Arc::new(RwLock::new(account)),
+            last_synced: Arc::new(Mutex::new((0, AccountBalance { total: 0, available: 0 }))),
         }
     }
 
@@ -90,15 +94,9 @@ impl AccountHandle {
         // for `available` get locked_outputs, sum outputs balance and substract from total_balance
         log::debug!("[BALANCE] locked outputs: {:#?}", account.locked_outputs);
         let mut locked_balance = 0;
-        for (address, outputs) in account.outputs.iter() {
-            for output in outputs {
-                if account
-                    .locked_outputs
-                    .contains(&OutputId::new(output.transaction_id, output.index)?)
-                {
-                    // log::debug!("[BALANCE] locked output: {:#?}", output);
-                    locked_balance += output.amount;
-                }
+        for locked_output in &account.locked_outputs {
+            if let Some(output) = account.unspent_outputs.get(locked_output) {
+                locked_balance += output.amount;
             }
         }
         log::debug!(

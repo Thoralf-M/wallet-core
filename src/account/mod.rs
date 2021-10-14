@@ -42,13 +42,15 @@ pub struct Account {
     signer_type: SignerType,
     addresses: Vec<AccountAddress>,
     // stored separated from the account for performance?
-    outputs: HashMap<Address, Vec<OutputData>>,
+    outputs: HashMap<OutputId, OutputData>,
     // outputs used in transactions should be locked here so they don't get used again, resulting in conflicting
     // transactions
     locked_outputs: HashSet<OutputId>,
+    // have unspent outputs in a separated hashmap so we don't need to iterate over all outputs we have
+    unspent_outputs: HashMap<OutputId, OutputData>,
     // stored separated from the account for performance and only the transaction id here? where to add the network id?
     // transactions: HashSet<TransactionId>,
-    transactions: HashMap<TransactionId, TransactionPayload>,
+    transactions: HashMap<TransactionId, types::Transaction>,
     // Maybe pending transactions even additionally separated?
     pending_transactions: HashSet<TransactionId>,
     client_options: ClientOptions,

@@ -4,7 +4,11 @@ mod options;
 mod sign_transaction;
 mod submit_transaction;
 
-use crate::account::{handle::AccountHandle, operations::input_selection::select_inputs, types::OutputData};
+use crate::account::{
+    handle::AccountHandle,
+    operations::input_selection::select_inputs,
+    types::{InclusionState, OutputData, Transaction},
+};
 pub use options::{RemainderValueStrategy, TransferOptions, TransferOutput};
 
 use iota_client::bee_message::{
@@ -14,6 +18,8 @@ use iota_client::bee_message::{
     payload::transaction::TransactionPayload,
     MessageId,
 };
+
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const DUST_ALLOWANCE_VALUE: u64 = 1_000_000;
 
@@ -70,9 +76,24 @@ pub async fn send_transfer(
         };
     // store transaction payload to account (with db feature also store the account to the db) here before sending
     let mut account = account_handle.write().await;
-    account
-        .transactions
-        .insert(transaction_payload.id(), transaction_payload.clone());
+    let client_guard = crate::client::get_client(&account.client_options).await?;
+    let network_id = client_guard.read().await.get_network_id().await?;
+    account.transactions.insert(
+        transaction_payload.id(),
+        Transaction {
+            payload: transaction_payload.clone(),
+            message_id: None,
+            network_id,
+            timestamp: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards")
+                .as_millis(),
+            inclusion_state: InclusionState::Pending,
+            incoming: false,
+            internal: false,
+        },
+    );
+    account.pending_transactions.insert(transaction_payload.id());
     drop(account);
     submit_transaction::submit_transaction_payload(account_handle, transaction_payload).await
 }

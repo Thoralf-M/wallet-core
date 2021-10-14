@@ -47,8 +47,9 @@ impl AccountBuilder {
             alias: self.index.to_string(),
             signer_type: self.signer_type.clone(),
             addresses: Vec::new(),
-            locked_outputs: HashSet::new(),
             outputs: HashMap::new(),
+            locked_outputs: HashSet::new(),
+            unspent_outputs: HashMap::new(),
             transactions: HashMap::new(),
             pending_transactions: HashSet::new(),
             // default options for testing

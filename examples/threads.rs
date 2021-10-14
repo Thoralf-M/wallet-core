@@ -17,6 +17,12 @@ use wallet_core::{
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Generates a wallet.log file with logs for debugging
+    let output_config = LoggerOutputConfigBuilder::new()
+        .name("wallet.log")
+        .level_filter(LevelFilter::Debug);
+    let config = LoggerConfig::build().with_output(output_config).finish();
+    logger_init(config).unwrap();
     let manager = AccountManager::builder().finish().await?;
 
     // Get account or create a new one
@@ -43,23 +49,23 @@ async fn main() -> Result<()> {
         }
     };
 
-    let _address = account.generate_addresses(5, None).await?;
+    let _address = account.generate_addresses(1, None).await?;
     for ad in _address {
         println!("{}", ad.address().to_bech32());
     }
     let balance = account.sync(None).await?;
     println!("Balance: {:?}", balance);
 
-    for _ in 0..100 {
+    for _ in 0..1000 {
         let mut threads = Vec::new();
-        for n in 0..10 {
+        for n in 0..3 {
             let account_ = account.clone();
             threads.push(async move {
                 tokio::spawn(async move {
                     // send transaction
                     let outputs = vec![TransferOutput {
                         address: "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string(),
-                        amount: 1_000_000,
+                        amount: 20_000_000,
                         // we create a dust allowance outputs so we can reuse the address even with remainder
                         output_kind: Some(OutputKind::SignatureLockedDustAllowance),
                     }];
@@ -90,7 +96,7 @@ async fn main() -> Result<()> {
             }
         }
         println!("sleep");
-        tokio::time::sleep(std::time::Duration::from_secs(20)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     }
     // wait until user press enter so background tasks keep running
     let mut input = String::new();

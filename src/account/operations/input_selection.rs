@@ -23,20 +23,18 @@ pub(crate) async fn select_inputs(
 
     let mut signature_locked_outputs = Vec::new();
     let mut dust_allowance_outputs = Vec::new();
-    for (address, outputs) in account.outputs.iter() {
-        for output in outputs {
-            // check if not in pending transaction (locked_outputs) and if from the correct network
-            if !output.is_spent
-                && !account
-                    .locked_outputs
-                    .contains(&OutputId::new(output.transaction_id, output.index)?)
-                && output.network_id == network_id
-            {
-                match output.kind {
-                    OutputKind::SignatureLockedSingle => signature_locked_outputs.push(output),
-                    OutputKind::SignatureLockedDustAllowance => dust_allowance_outputs.push(output),
-                    _ => {}
-                }
+    for (output_id, output) in account.unspent_outputs.iter() {
+        // check if not in pending transaction (locked_outputs) and if from the correct network
+        if !output.is_spent
+            && !account
+                .locked_outputs
+                .contains(&OutputId::new(output.transaction_id, output.index)?)
+            && output.network_id == network_id
+        {
+            match output.kind {
+                OutputKind::SignatureLockedSingle => signature_locked_outputs.push(output),
+                OutputKind::SignatureLockedDustAllowance => dust_allowance_outputs.push(output),
+                _ => {}
             }
         }
     }
@@ -48,22 +46,36 @@ pub(crate) async fn select_inputs(
     signature_locked_outputs.sort_by(|a, b| b.amount.cmp(&a.amount));
     dust_allowance_outputs.sort_by(|a, b| b.amount.cmp(&a.amount));
 
-    let mut sum = 0;
+    let mut input_sum = 0;
     let selected_outputs: Vec<OutputData> = signature_locked_outputs
         .into_iter()
         // add dust_allowance_outputs only at the end so we don't try to move them when we might have still dust
         .chain(dust_allowance_outputs.into_iter())
         .take_while(|input| {
             let value = input.amount;
-            let old_sum = sum;
-            sum += value;
+            let old_sum = input_sum;
+            input_sum += value;
             old_sum < amount_to_send || (old_sum - amount_to_send < DUST_ALLOWANCE_VALUE && old_sum != amount_to_send)
         })
         .cloned()
         .collect();
 
+    if input_sum < amount_to_send {
+        return Err(crate::Error::InsufficientFunds(input_sum, amount_to_send));
+    }
+    let remainder_value = input_sum - amount_to_send;
+    if remainder_value != 0 && remainder_value < DUST_ALLOWANCE_VALUE {
+        return Err(crate::Error::LeavingDustError(format!(
+            "Transaction would leave dust behind ({}i)",
+            remainder_value
+        )));
+    }
     // lock outputs so they don't get used by another transaction
     for output in &selected_outputs {
+        // log::debug!(
+        //     "[TRANSFER] select_inputs: lock {}",
+        //     OutputId::new(output.transaction_id, output.index)?,
+        // );
         account
             .locked_outputs
             .insert(OutputId::new(output.transaction_id, output.index)?);

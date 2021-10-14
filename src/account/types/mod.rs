@@ -101,14 +101,23 @@ pub struct OutputData {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transaction {
-    pub transaction: TransactionPayload,
-    // probably better to remove it and fetch the output with the output_id if needed (if stored separated from the
-    // account)
-    pub inputs: Vec<OutputData>,
-    pub attachments: Vec<MessageId>,
-    pub confirmed: bool,
+    pub payload: TransactionPayload,
+    pub message_id: Option<MessageId>,
+    pub inclusion_state: InclusionState,
+    pub timestamp: u128,
     // network id to ignore outputs when set_client_options is used to switch to another network
-    pub network_id: String,
+    pub network_id: u64,
+    // set if the transaction was created by the wallet or if it was sent by someone else and is incoming
+    pub incoming: bool,
+    // do we want this field? could be used for internal transfers later, but not really necessary
+    pub internal: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum InclusionState {
+    Pending,
+    Confirmed,
+    Conflicting,
 }
 
 /// The address output kind.

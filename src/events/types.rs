@@ -1,4 +1,4 @@
-use crate::account::types::address::AddressWrapper;
+use crate::account::types::{address::AddressWrapper, InclusionState};
 
 use getset::Getters;
 use iota_client::bee_message::payload::transaction::TransactionId;
@@ -38,13 +38,6 @@ pub struct BalanceChangeEvent {
 pub struct TransactionInclusionEvent {
     pub transaction_id: TransactionId,
     pub inclusion_state: InclusionState,
-}
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum InclusionState {
-    Confirmed,
-    Conflicting,
-    Unkown, /* do we need this for a case like tx created, then the wallet was offline until the node snapshotted
-             * the tx? */
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
