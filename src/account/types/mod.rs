@@ -122,8 +122,6 @@ pub enum InclusionState {
     Pending,
     Confirmed,
     Conflicting,
-    // If it was pruned
-    Unknown,
 }
 
 /// The address output kind.
