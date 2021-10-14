@@ -65,7 +65,7 @@ async fn main() -> Result<()> {
                     // send transaction
                     let outputs = vec![TransferOutput {
                         address: "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string(),
-                        amount: 20_000_000,
+                        amount: 10_000_000,
                         // we create a dust allowance outputs so we can reuse the address even with remainder
                         output_kind: Some(OutputKind::SignatureLockedDustAllowance),
                     }];

@@ -97,6 +97,8 @@ pub struct OutputData {
     /// Network ID
     #[serde(rename = "networkId")]
     pub network_id: u64,
+    // get it from the milestone that confirmed it (get metadata of the oupt and calculate the time backwards if the
+    // milestone was pruned)
     pub timestamp: u128,
     pub remainder: bool,
 }
@@ -120,6 +122,8 @@ pub enum InclusionState {
     Pending,
     Confirmed,
     Conflicting,
+    // If it was pruned
+    Unknown,
 }
 
 /// The address output kind.

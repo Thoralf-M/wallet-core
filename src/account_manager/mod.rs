@@ -22,6 +22,7 @@ pub struct AccountManager {
     // should we use a hashmap instead of a vec like in wallet.rs?
     pub(crate) accounts: Arc<RwLock<Vec<AccountHandle>>>,
     pub(crate) background_syncing_enabled: Arc<AtomicBool>,
+    pub(crate) version: u16,
 }
 
 impl AccountManager {

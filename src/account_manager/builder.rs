@@ -44,6 +44,7 @@ impl AccountManagerBuilder {
         Ok(AccountManager {
             accounts: Arc::new(RwLock::new(Vec::new())),
             background_syncing_enabled: Arc::new(AtomicBool::new(true)),
+            version: 1,
         })
     }
 }
