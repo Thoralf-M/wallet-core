@@ -128,8 +128,11 @@ async fn update_account(
     }
 
     for transaction in synced_transactions {
-        if transaction.inclusion_state == InclusionState::Confirmed {
-            account.pending_transactions.remove(&transaction.payload.id());
+        match transaction.inclusion_state {
+            InclusionState::Confirmed | InclusionState::Conflicting => {
+                account.pending_transactions.remove(&transaction.payload.id());
+            }
+            _ => {}
         }
         account.transactions.insert(transaction.payload.id(), transaction);
     }
