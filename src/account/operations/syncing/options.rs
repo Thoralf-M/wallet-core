@@ -26,6 +26,9 @@ pub struct SyncOptions {
     // updated)
     #[serde(rename = "syncAllAddresses", default)]
     pub sync_all_addresses: bool,
+    // usually we skip syncing if it's called within a few ms, but if we change the client options we need to resync
+    #[serde(rename = "forceSyncing", default)]
+    pub force_syncing: bool,
 }
 
 fn default_output_consolidation_threshold() -> usize {

@@ -109,9 +109,8 @@ async fn main() -> Result<()> {
     //     .with_node_sync_disabled()
     //     .finish()
     //     .unwrap();
-    // manager.set_client_options(client_options).await?;
     // let now = Instant::now();
-    // let balance = account.sync(None).await?;
+    // manager.set_client_options(client_options).await?;
     // println!("Syncing took: {:.2?}", now.elapsed());
     // println!("Balance: {:?}", balance);
 
@@ -123,9 +122,8 @@ async fn main() -> Result<()> {
     //     .with_node_sync_disabled()
     //     .finish()
     //     .unwrap();
-    // manager.set_client_options(client_options).await?;
     // let now = Instant::now();
-    // let balance = account.sync(None).await?;
+    // manager.set_client_options(client_options).await?;
     // println!("Syncing took: {:.2?}", now.elapsed());
     // println!("Balance: {:?}", balance);
 

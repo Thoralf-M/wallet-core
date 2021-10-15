@@ -6,7 +6,10 @@ use crate::{
             syncing::{sync_account, SyncOptions},
             transfer::{send_transfer, TransferOptions, TransferOutput},
         },
-        types::{address::AccountAddress, address::AddressWithBalance, AccountBalance, Transaction},
+        types::{
+            address::{AccountAddress, AddressWithBalance},
+            AccountBalance, Transaction,
+        },
         Account,
     },
     client::options::ClientOptions,
@@ -117,6 +120,7 @@ impl AccountHandle {
 
     // Should only be called from the AccountManager so all accounts use the same options
     pub(crate) async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
+        log::debug!("[SET_CLIENT_OPTIONS]");
         let mut account = self.account.write().await;
         account.client_options = options;
         // do we need to update the bech32_hrp for all addresses here?
@@ -126,6 +130,7 @@ impl AccountHandle {
         // balance also in the new network
         self.sync(Some(SyncOptions {
             sync_all_addresses: true,
+            force_syncing: true,
             ..Default::default()
         }))
         .await?;

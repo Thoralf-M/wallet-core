@@ -34,7 +34,7 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
         .as_millis();
     let mut last_synced = account_handle.last_synced.lock().await;
     log::debug!("[SYNC] last time synced before {}ms", time_now - *last_synced);
-    if time_now - *last_synced < MIN_SYNC_INTERVAL {
+    if time_now - *last_synced < MIN_SYNC_INTERVAL && !options.force_syncing {
         log::debug!(
             "[SYNC] synced within the latest {} ms, only calculating balance",
             MIN_SYNC_INTERVAL
