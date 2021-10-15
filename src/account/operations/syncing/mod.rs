@@ -5,7 +5,10 @@ pub(crate) mod transactions;
 
 use crate::account::{
     handle::AccountHandle,
-    types::{address::AccountAddress, InclusionState, OutputData, Transaction},
+    types::{
+        address::{AccountAddress, AddressWithBalance},
+        InclusionState, OutputData, Transaction,
+    },
     AccountBalance,
 };
 pub use options::SyncOptions;
@@ -86,27 +89,32 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
 /// Update account with newly synced data
 async fn update_account(
     account_handle: &AccountHandle,
-    addresses_with_balance: Vec<AccountAddress>,
+    addresses_with_balance: Vec<AddressWithBalance>,
     outputs: Vec<OutputData>,
     synced_transactions: Vec<Transaction>,
     spent_output_ids: Vec<OutputId>,
     options: &SyncOptions,
 ) -> crate::Result<()> {
     let mut account = account_handle.write().await;
-    for mut address in &mut account.addresses {
-        let position = addresses_with_balance
+    // update used field of the addresses
+    for address in addresses_with_balance.iter() {
+        let position = account
+            .addresses
             .binary_search_by_key(&(address.key_index, address.internal), |a| (a.key_index, a.internal));
         if let Ok(index) = position {
-            address.balance = addresses_with_balance[index].balance;
-            // if the address has balance, then it's also used
-            address.used = true;
-        } else {
-            // Set balance for addresses we didn't get to 0
-            if address.key_index >= options.address_start_index {
-                address.balance = 0;
-            }
+            account.addresses[index].used = true;
         }
     }
+    // get all addresses with balance that we didn't sync because their index is below the address_start_index of the
+    // options
+    account.addresses_with_balance = account
+        .addresses_with_balance
+        .iter()
+        .filter(|a| a.key_index < options.address_start_index)
+        .cloned()
+        .collect();
+    // then add all synced addresses with balance
+    account.addresses_with_balance.extend(addresses_with_balance);
 
     for output in outputs {
         account
@@ -118,7 +126,7 @@ async fn update_account(
                 .insert(OutputId::new(output.transaction_id, output.index)?, output);
         }
     }
-    
+
     for transaction in synced_transactions {
         if transaction.inclusion_state == InclusionState::Confirmed {
             account.pending_transactions.remove(&transaction.payload.id());

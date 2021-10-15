@@ -18,13 +18,27 @@ pub struct AccountAddress {
     /// Determines if an address is a public or an internal (change) address.
     #[getset(set = "pub(crate)")]
     pub(crate) internal: bool,
-    /// Balance
-    // do we want this field? if we want to keep it, do we need to validate that the amount of the outputs matches?
-    // What happens if we don't get all outputs because of the API limit?
-    pub(crate) balance: u64,
     // do we want this field? Could be useful if we don't store spent output ids and because of that wouldn't know if
     // an address was used or not just by looking at it
     pub(crate) used: bool,
+}
+
+/// An account address.
+#[derive(Debug, Getters, Setters, Clone, Serialize, Deserialize)]
+#[getset(get = "pub")]
+pub struct AddressWithBalance {
+    /// The address.
+    #[serde(with = "crate::account::types::address_serde")]
+    pub(crate) address: AddressWrapper,
+    /// The address key index.
+    #[serde(rename = "keyIndex")]
+    #[getset(set = "pub(crate)")]
+    pub(crate) key_index: usize,
+    /// Determines if an address is a public or an internal (change) address.
+    #[getset(set = "pub(crate)")]
+    pub(crate) internal: bool,
+    /// Balance
+    pub(crate) balance: u64,
 }
 
 /// An address and its network type.

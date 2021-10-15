@@ -8,7 +8,10 @@ pub use operations::{
 };
 
 use crate::{
-    account::types::{address::AccountAddress, AccountBalance, OutputData},
+    account::types::{
+        address::{AccountAddress, AddressWithBalance},
+        AccountBalance, OutputData,
+    },
     client::options::ClientOptions,
     signing::SignerType,
 };
@@ -41,6 +44,8 @@ pub struct Account {
     #[serde(rename = "signerType")]
     signer_type: SignerType,
     addresses: Vec<AccountAddress>,
+    // used to improve performance for syncing and getbalance because it's in most cases only a subset of all addresses
+    addresses_with_balance: Vec<AddressWithBalance>,
     // stored separated from the account for performance?
     outputs: HashMap<OutputId, OutputData>,
     // outputs used in transactions should be locked here so they don't get used again, resulting in conflicting

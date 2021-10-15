@@ -47,6 +47,7 @@ impl AccountBuilder {
             alias: self.index.to_string(),
             signer_type: self.signer_type.clone(),
             addresses: Vec::new(),
+            addresses_with_balance: Vec::new(),
             outputs: HashMap::new(),
             locked_outputs: HashSet::new(),
             unspent_outputs: HashMap::new(),

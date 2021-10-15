@@ -1,7 +1,7 @@
 use crate::account::{
     handle::AccountHandle,
     operations::syncing::{SyncOptions, SYNC_CHUNK_SIZE},
-    types::address::AccountAddress,
+    types::address::{AccountAddress, AddressWithBalance},
 };
 use iota_client::bee_message::output::OutputId;
 
@@ -11,7 +11,7 @@ use std::{collections::HashSet, str::FromStr, time::Instant};
 pub(crate) async fn get_addresses_with_balance(
     account_handle: &AccountHandle,
     options: &SyncOptions,
-) -> crate::Result<Vec<AccountAddress>> {
+) -> crate::Result<Vec<AddressWithBalance>> {
     log::debug!("[SYNC] start get_addresses_with_balance");
     let balance_sync_start_time = Instant::now();
     let account = account_handle.read().await;
@@ -28,7 +28,7 @@ pub(crate) async fn get_addresses_with_balance(
         .into_iter()
     {
         let mut tasks = Vec::new();
-        for mut address in addresses_chunk {
+        for address in addresses_chunk {
             let client_guard = client_guard.clone();
             tasks.push(async move {
                 tokio::spawn(async move {
@@ -41,8 +41,13 @@ pub(crate) async fn get_addresses_with_balance(
                             address.address().to_bech32()
                         );
                     }
-                    address.balance = balance_response.balance;
-                    crate::Result::Ok(address)
+
+                    crate::Result::Ok(AddressWithBalance {
+                        address: address.address,
+                        key_index: address.key_index,
+                        internal: address.internal,
+                        balance: balance_response.balance,
+                    })
                 })
                 .await
             });
@@ -68,7 +73,7 @@ pub(crate) async fn get_addresses_with_balance(
 pub(crate) async fn get_address_output_ids(
     account_handle: &AccountHandle,
     options: &SyncOptions,
-    addresses_with_balance: Vec<AccountAddress>,
+    addresses_with_balance: Vec<AddressWithBalance>,
 ) -> crate::Result<Vec<OutputId>> {
     log::debug!("[SYNC] start get_address_output_ids");
     let address_outputs_sync_start_time = Instant::now();
@@ -81,7 +86,7 @@ pub(crate) async fn get_address_output_ids(
     // We split the addresses into chunks so we don't get timeouts if we have thousands
     for addresses_chunk in addresses_with_balance
         .chunks(SYNC_CHUNK_SIZE)
-        .map(|x: &[AccountAddress]| x.to_vec())
+        .map(|x: &[AddressWithBalance]| x.to_vec())
         .into_iter()
     {
         let mut tasks = Vec::new();

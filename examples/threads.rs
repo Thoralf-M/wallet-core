@@ -58,14 +58,14 @@ async fn main() -> Result<()> {
 
     for _ in 0..1000 {
         let mut threads = Vec::new();
-        for n in 0..3 {
+        for n in 0..6 {
             let account_ = account.clone();
             threads.push(async move {
                 tokio::spawn(async move {
                     // send transaction
                     let outputs = vec![TransferOutput {
                         address: "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string(),
-                        amount: 10_000_000,
+                        amount: 1_000_000,
                         // we create a dust allowance outputs so we can reuse the address even with remainder
                         output_kind: Some(OutputKind::SignatureLockedDustAllowance),
                     }];
@@ -96,7 +96,7 @@ async fn main() -> Result<()> {
             }
         }
         println!("sleep");
-        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     }
     // wait until user press enter so background tasks keep running
     let mut input = String::new();

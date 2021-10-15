@@ -6,7 +6,7 @@ use crate::{
             syncing::{sync_account, SyncOptions},
             transfer::{send_transfer, TransferOptions, TransferOutput},
         },
-        types::{address::AccountAddress, AccountBalance, Transaction},
+        types::{address::AccountAddress, address::AddressWithBalance, AccountBalance, Transaction},
         Account,
     },
     client::options::ClientOptions,
@@ -85,12 +85,17 @@ impl AccountHandle {
         let account = self.read().await;
         Ok(account.addresses().to_vec())
     }
+    /// Returns only addresses of the account with balance
+    pub async fn list_addresses_with_balance(&self) -> crate::Result<Vec<AddressWithBalance>> {
+        let account = self.read().await;
+        Ok(account.addresses_with_balance().to_vec())
+    }
 
     /// Get the total and available blance of an account
     pub async fn balance(&self) -> crate::Result<AccountBalance> {
         log::debug!("[BALANCE] get balance");
         let account = self.account.read().await;
-        let total_balance: u64 = account.addresses.iter().map(|a| a.balance()).sum();
+        let total_balance: u64 = account.addresses_with_balance.iter().map(|a| a.balance()).sum();
         // for `available` get locked_outputs, sum outputs balance and substract from total_balance
         log::debug!("[BALANCE] locked outputs: {:#?}", account.locked_outputs);
         let mut locked_balance = 0;

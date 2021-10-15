@@ -75,6 +75,9 @@ async fn main() -> Result<()> {
     println!("Syncing took: {:.2?}", now.elapsed());
     println!("Balance: {:?}", balance);
 
+    let addresses_with_balance = account.list_addresses_with_balance().await?;
+    println!("Addresses with balance: {}", addresses_with_balance.len());
+
     // send transaction
     let outputs = vec![TransferOutput {
         address: "atoi1qzt0nhsf38nh6rs4p6zs5knqp6psgha9wsv74uajqgjmwc75ugupx3y7x0r".to_string(),
