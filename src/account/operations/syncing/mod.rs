@@ -30,13 +30,14 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
         .expect("Time went backwards")
         .as_millis();
     let mut last_synced = account_handle.last_synced.lock().await;
-    log::debug!("[SYNC] last time synced before {}ms", time_now - last_synced.0);
-    if time_now - last_synced.0 < MIN_SYNC_INTERVAL {
+    log::debug!("[SYNC] last time synced before {}ms", time_now - *last_synced);
+    if time_now - *last_synced < MIN_SYNC_INTERVAL {
         log::debug!(
-            "[SYNC] synced within the latest {} ms, returning latest synced balance",
+            "[SYNC] synced within the latest {} ms, only calculating balance",
             MIN_SYNC_INTERVAL
         );
-        return Ok(last_synced.1.clone());
+        // calculate the balance because if we created a transaction the amount for the inputs is not available anymore
+        return account_handle.balance().await;
     }
 
     // sync transactions first so we maybe get confirmed outputs in the syncing process later
@@ -66,6 +67,7 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
         outputs,
         synced_transactions,
         spent_output_ids,
+        options,
     )
     .await?;
     // store account with storage feature
@@ -76,8 +78,7 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards")
         .as_millis();
-    last_synced.0 = time_now;
-    last_synced.1 = account_balance.clone();
+    *last_synced = time_now;
     log::debug!("[SYNC] finished syncing in {:.2?}", syc_start_time.elapsed());
     Ok(account_balance)
 }
@@ -89,18 +90,24 @@ async fn update_account(
     outputs: Vec<OutputData>,
     synced_transactions: Vec<Transaction>,
     spent_output_ids: Vec<OutputId>,
+    options: &SyncOptions,
 ) -> crate::Result<()> {
     let mut account = account_handle.write().await;
-    for address in addresses_with_balance {
-        let r = account
-            .addresses
+    for mut address in &mut account.addresses {
+        let position = addresses_with_balance
             .binary_search_by_key(&(address.key_index, address.internal), |a| (a.key_index, a.internal));
-        if let Ok(index) = r {
-            account.addresses[index].balance = address.balance;
+        if let Ok(index) = position {
+            address.balance = addresses_with_balance[index].balance;
             // if the address has balance, then it's also used
-            account.addresses[index].used = true;
+            address.used = true;
+        } else {
+            // Set balance for addresses we didn't get to 0
+            if address.key_index >= options.address_start_index {
+                address.balance = 0;
+            }
         }
     }
+
     for output in outputs {
         account
             .outputs
@@ -111,12 +118,14 @@ async fn update_account(
                 .insert(OutputId::new(output.transaction_id, output.index)?, output);
         }
     }
+    
     for transaction in synced_transactions {
         if transaction.inclusion_state == InclusionState::Confirmed {
             account.pending_transactions.remove(&transaction.payload.id());
         }
         account.transactions.insert(transaction.payload.id(), transaction);
     }
+
     for spent_output_id in spent_output_ids {
         if let Some(output) = account.outputs.get_mut(&spent_output_id) {
             output.is_spent = true;

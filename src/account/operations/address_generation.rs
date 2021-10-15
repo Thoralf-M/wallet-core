@@ -70,6 +70,7 @@ pub async fn generate_addresses(
     drop(account);
 
     let mut account = account_handle.write().await;
+    // public and internal addresses aren't ordered that way, do we want to change that?
     account.addresses.extend(generate_addresses.clone());
     // todo: store account to database if storage is used
     Ok(generate_addresses)

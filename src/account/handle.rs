@@ -23,14 +23,14 @@ pub struct AccountHandle {
     account: Arc<RwLock<Account>>,
     // mutex to prevent multipls sync calls at the same time, returnning the last synced result if the time was < 1?
     // second ago the u64 is a timestamp
-    pub(crate) last_synced: Arc<Mutex<(u128, AccountBalance)>>,
+    pub(crate) last_synced: Arc<Mutex<u128>>,
 }
 
 impl AccountHandle {
     pub(crate) fn new(account: Account) -> Self {
         Self {
             account: Arc::new(RwLock::new(account)),
-            last_synced: Arc::new(Mutex::new((0, AccountBalance { total: 0, available: 0 }))),
+            last_synced: Default::default(),
         }
     }
 
