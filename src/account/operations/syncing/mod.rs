@@ -100,10 +100,9 @@ async fn update_account(
     for address in addresses_with_balance.iter() {
         let position = account
             .addresses
-            .binary_search_by_key(&(address.key_index, address.internal), |a| (a.key_index, a.internal));
-        if let Ok(index) = position {
-            account.addresses[index].used = true;
-        }
+            .binary_search_by_key(&(address.key_index, address.internal), |a| (a.key_index, a.internal))
+            .map_err(|e| crate::Error::InputAddressNotFound)?;
+        account.addresses[position].used = true;
     }
     // get all addresses with balance that we didn't sync because their index is below the address_start_index of the
     // options

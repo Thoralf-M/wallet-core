@@ -6,7 +6,13 @@ use crate::{
     signing::{SignMessageMetadata, TransactionInput},
 };
 
-use iota_client::bee_message::{payload::transaction::Essence, unlock::UnlockBlocks};
+use crypto::hashes::{blake2b::Blake2b256, Digest};
+use iota_client::bee_message::{
+    address::{Address, Ed25519Address, ED25519_ADDRESS_LENGTH},
+    output::Output,
+    payload::transaction::Essence,
+    unlock::{UnlockBlock, UnlockBlocks},
+};
 
 /// Function to sign a transaction essence
 pub(crate) async fn sign_tx_essence(
@@ -38,12 +44,52 @@ pub(crate) async fn sign_tx_essence(
         )
         .await?;
 
-    // todo: validate signature after signing with the inputs
-    // the public key hashes should be the same as the input address https://github.com/iotaledger/iota.rs/blob/7ba3fdd909fe5e51a9f55d47263e6191b60ade3c/iota-client/src/client.rs#L1272
     let transaction_payload = TransactionPayload::builder()
         .with_essence(essence)
         .with_unlock_blocks(UnlockBlocks::new(unlock_blocks)?)
         .finish()?;
+
+    // Validate signature after signing. The hashed public key needs to match the input address
+    let mut input_addresses = Vec::new();
+    for input in transaction_inputs {
+        let position = account
+            .addresses
+            .binary_search_by_key(&(input.address_index, input.address_internal), |a| {
+                (a.key_index, a.internal)
+            })
+            .map_err(|e| crate::Error::InputAddressNotFound)?;
+        input_addresses.push(account.addresses[position].address.inner);
+    }
+    verify_unlock_blocks(&transaction_payload, input_addresses)?;
     log::debug!("[TRANSFER] signed transaction: {:?}", transaction_payload);
     Ok(transaction_payload)
+}
+
+fn verify_unlock_blocks(transaction_payload: &TransactionPayload, inputs: Vec<Address>) -> crate::Result<()> {
+    let essence_hash = transaction_payload.essence().hash();
+    let Essence::Regular(essence) = transaction_payload.essence();
+    let unlock_blocks = transaction_payload.unlock_blocks();
+    for (index, address) in inputs.iter().enumerate() {
+        verify_signature(address, unlock_blocks, index, &essence_hash)?;
+    }
+    Ok(())
+}
+
+fn verify_signature(
+    address: &Address,
+    unlock_blocks: &UnlockBlocks,
+    index: usize,
+    essence_hash: &[u8; 32],
+) -> crate::Result<()> {
+    let signature_unlock_block = match unlock_blocks.get(index) {
+        Some(unlock_block) => match unlock_block {
+            UnlockBlock::Signature(b) => b,
+            UnlockBlock::Reference(b) => match unlock_blocks.get(b.index().into()) {
+                Some(UnlockBlock::Signature(unlock_block)) => unlock_block,
+                _ => return Err(crate::Error::MissingUnlockBlock),
+            },
+        },
+        None => return Err(crate::Error::MissingUnlockBlock),
+    };
+    Ok(address.verify(essence_hash, signature_unlock_block)?)
 }

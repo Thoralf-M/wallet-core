@@ -230,6 +230,9 @@ pub enum Error {
     /// Mnemonic not set error
     #[error("mnemonic not set")]
     MnemonicNotSet,
+    /// Missing unlock block error
+    #[error("missing unlock block")]
+    MissingUnlockBlock,
 }
 
 // impl Drop for Error {
@@ -370,6 +373,7 @@ impl serde::Serialize for Error {
             Self::Crypto(_) => serialize_variant(self, serializer, "Crypto"),
             #[cfg(feature = "mnemonic")]
             Self::MnemonicNotSet => serialize_variant(self, serializer, "MnemonicNotSet"),
+            Self::MissingUnlockBlock => serialize_variant(self, serializer, "MissingUnlockBlock"),
         }
     }
 }
