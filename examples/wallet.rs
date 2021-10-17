@@ -30,7 +30,7 @@ async fn main() -> Result<()> {
     let account_alias = "logger";
     let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
     manager.store_mnemonic(SignerType::Mnemonic, Some(mnemonic)).await?;
-    let account = match manager.get_account(account_alias.to_string()).await {
+    let account = match manager.get_account(account_alias).await {
         Ok(account) => account,
         _ => {
             // first we'll create an example account and store it
@@ -44,9 +44,10 @@ async fn main() -> Result<()> {
                 .finish()
                 .unwrap();
             manager
-                .create_account(Some(client_options))
-                // .alias(account_alias)
-                // .initialise()
+                .create_account()
+                .with_client_options(client_options)
+                .with_alias(account_alias.to_string())
+                .finish()
                 .await?
         }
     };

@@ -32,18 +32,9 @@ impl AccountManager {
     }
 
     /// Create a new account
-    // todo: how to add further options like alias?
-    pub async fn create_account(&self, options: Option<ClientOptions>) -> crate::Result<AccountHandle> {
+    pub fn create_account(&self) -> AccountBuilder {
         log::debug!("creating account");
-        // create account so it compiles
-        let mut account_builder = AccountBuilder::new(0);
-        if let Some(client_options) = options {
-            account_builder = account_builder.with_client_options(client_options);
-        }
-        let account_handle = AccountHandle::new(account_builder.finish()?);
-        let mut accounts = self.accounts.write().await;
-        accounts.push(account_handle.clone());
-        Ok(account_handle)
+        AccountBuilder::new(self.accounts.clone())
     }
     // can create_account be merged into get_account?
     pub async fn get_account<I: Into<AccountIdentifier>>(&self, identifier: I) -> crate::Result<AccountHandle> {

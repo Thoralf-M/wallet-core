@@ -27,6 +27,17 @@ pub(crate) async fn sign_tx_essence(
         Some(remainder) => (Some(remainder.address), remainder.amount),
         None => (None, 0),
     };
+    let network = match account
+        .public_addresses
+        .first()
+        .expect("Missing first public address")
+        .address
+        .bech32_hrp()
+    {
+        "iota" => crate::signing::Network::Mainnet,
+        _ => crate::signing::Network::Testnet,
+    };
+
     let unlock_blocks = crate::signing::get_signer(account.signer_type())
         .await
         .lock()
@@ -38,8 +49,7 @@ pub(crate) async fn sign_tx_essence(
             SignMessageMetadata {
                 remainder_value,
                 remainder_deposit_address: remainder_deposit_address.as_ref(),
-                // todo: get this from the account (from the bech32_hrp of an address?) or the client
-                network: crate::signing::Network::Testnet,
+                network,
             },
         )
         .await?;

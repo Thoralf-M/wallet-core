@@ -42,9 +42,10 @@ async fn main() -> Result<()> {
                 .finish()
                 .unwrap();
             manager
-                .create_account(Some(client_options))
-                // .alias(account_alias)
-                // .initialise()
+                .create_account()
+                .with_client_options(client_options)
+                .with_alias(account_alias.to_string())
+                .finish()
                 .await?
         }
     };

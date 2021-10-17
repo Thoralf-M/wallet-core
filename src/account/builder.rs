@@ -1,35 +1,46 @@
 use crate::{
-    account::{Account, AccountOptions},
+    account::{handle::AccountHandle, Account, AccountOptions},
+    account_manager::AccountManager,
     client::options::{ClientOptions, ClientOptionsBuilder},
     signing::SignerType,
 };
 
+use tokio::sync::{RwLock, RwLockWriteGuard};
+
 use std::{
     collections::{HashMap, HashSet},
+    sync::Arc,
     time::Duration,
 };
 
 pub struct AccountBuilder {
-    index: usize,
     client_options: Option<ClientOptions>,
+    alias: Option<String>,
     signer_type: SignerType,
+    accounts: Arc<RwLock<Vec<AccountHandle>>>,
 }
 
 impl AccountBuilder {
     /// Create an IOTA client builder
-    pub fn new(index: usize) -> Self {
+    pub fn new(accounts: Arc<RwLock<Vec<AccountHandle>>>) -> Self {
         Self {
-            index,
             client_options: None,
+            alias: None,
             #[cfg(feature = "stronghold")]
             signer_type: SignerType::Stronghold,
             #[cfg(all(feature = "mnemonic", not(feature = "stronghold")))]
             signer_type: SignerType::Mnemonic,
             #[cfg(not(any(feature = "stronghold", feature = "mnemonic")))]
             signer_type: SignerType::Mnemonic,
+            accounts,
         }
     }
-    /// Set the client options
+    /// Set the alias
+    pub fn with_alias(mut self, alias: String) -> Self {
+        self.alias.replace(alias);
+        self
+    }
+    /// Set the client options (should this only be available via the AccountManager?)
     pub fn with_client_options(mut self, options: ClientOptions) -> Self {
         self.client_options.replace(options);
         self
@@ -40,11 +51,13 @@ impl AccountBuilder {
         self
     }
     // Build the Account
-    pub fn finish(&self) -> crate::Result<Account> {
-        Ok(Account {
-            id: self.index.to_string(),
-            index: self.index,
-            alias: self.index.to_string(),
+    pub async fn finish(&self) -> crate::Result<AccountHandle> {
+        let mut accounts = self.accounts.write().await;
+        let index = accounts.len();
+        let account = Account {
+            id: index.to_string(),
+            index,
+            alias: self.alias.clone().unwrap_or_else(|| index.to_string()),
             signer_type: self.signer_type.clone(),
             public_addresses: Vec::new(),
             internal_addresses: Vec::new(),
@@ -66,6 +79,9 @@ impl AccountBuilder {
                 output_consolidation_threshold: 100,
                 automatic_output_consolidation: true,
             },
-        })
+        };
+        let account_handle = AccountHandle::new(account);
+        accounts.push(account_handle.clone());
+        Ok(account_handle)
     }
 }

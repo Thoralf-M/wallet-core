@@ -50,7 +50,8 @@ pub(crate) async fn create_transaction(
             .filter(|a| a.address() == &utxo.address)
             .collect::<Vec<&AccountAddress>>()
             .first()
-            // todo: change logic so we don't have to search the address or return an Error and don't panic
+            // todo: decide if we want to change the logic so we don't have to search the address or return an Error and
+            // don't panic
             .expect("Didn't find input address in account"))
         .clone();
         inputs_for_signing.push(TransactionInput {
