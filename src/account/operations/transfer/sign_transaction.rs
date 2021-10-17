@@ -52,13 +52,23 @@ pub(crate) async fn sign_tx_essence(
     // Validate signature after signing. The hashed public key needs to match the input address
     let mut input_addresses = Vec::new();
     for input in transaction_inputs {
-        let position = account
-            .addresses
-            .binary_search_by_key(&(input.address_index, input.address_internal), |a| {
-                (a.key_index, a.internal)
-            })
-            .map_err(|e| crate::Error::InputAddressNotFound)?;
-        input_addresses.push(account.addresses[position].address.inner);
+        if input.address_internal {
+            let position = account
+                .internal_addresses
+                .binary_search_by_key(&(input.address_index, input.address_internal), |a| {
+                    (a.key_index, a.internal)
+                })
+                .map_err(|e| crate::Error::InputAddressNotFound)?;
+            input_addresses.push(account.internal_addresses[position].address.inner);
+        } else {
+            let position = account
+                .public_addresses
+                .binary_search_by_key(&(input.address_index, input.address_internal), |a| {
+                    (a.key_index, a.internal)
+                })
+                .map_err(|e| crate::Error::InputAddressNotFound)?;
+            input_addresses.push(account.public_addresses[position].address.inner);
+        }
     }
     verify_unlock_blocks(&transaction_payload, input_addresses)?;
     log::debug!("[TRANSFER] signed transaction: {:?}", transaction_payload);

@@ -55,17 +55,6 @@ async fn main() -> Result<()> {
     // println!("Accounts: {:?}", accounts);
 
     let _address = account.generate_addresses(5, None).await?;
-    // println!("Generated a new address: {}", _address[0].address().to_bech32());
-    // generate internal addresses because they are used for the remainder
-    // let _address = account
-    //     .generate_addresses(
-    //         20,
-    //         Some(AddressGenerationOptions {
-    //             internal: true,
-    //             ..Default::default()
-    //         }),
-    //     )
-    //     .await?;
 
     let addresses = account.list_addresses().await?;
     println!("Addresses: {}", addresses.len());
@@ -80,9 +69,9 @@ async fn main() -> Result<()> {
 
     // send transaction
     let outputs = vec![TransferOutput {
-        address: "atoi1qzt0nhsf38nh6rs4p6zs5knqp6psgha9wsv74uajqgjmwc75ugupx3y7x0r".to_string(),
+        address: "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string(),
         amount: 1_000_000,
-        // we create a dust allowance outputs so we can reuse the address even with remainder
+        // we create a dust allowance outputs so we can reuse our address even with remainder
         output_kind: Some(OutputKind::SignatureLockedDustAllowance),
     }];
     // let message_id = account.send(outputs, None).await?;

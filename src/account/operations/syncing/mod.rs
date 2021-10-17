@@ -98,11 +98,19 @@ async fn update_account(
     let mut account = account_handle.write().await;
     // update used field of the addresses
     for address in addresses_with_balance.iter() {
-        let position = account
-            .addresses
-            .binary_search_by_key(&(address.key_index, address.internal), |a| (a.key_index, a.internal))
-            .map_err(|e| crate::Error::InputAddressNotFound)?;
-        account.addresses[position].used = true;
+        if address.internal {
+            let position = account
+                .internal_addresses
+                .binary_search_by_key(&(address.key_index, address.internal), |a| (a.key_index, a.internal))
+                .map_err(|e| crate::Error::InputAddressNotFound)?;
+            account.internal_addresses[position].used = true;
+        } else {
+            let position = account
+                .public_addresses
+                .binary_search_by_key(&(address.key_index, address.internal), |a| (a.key_index, a.internal))
+                .map_err(|e| crate::Error::InputAddressNotFound)?;
+            account.public_addresses[position].used = true;
+        }
     }
     // get all addresses with balance that we didn't sync because their index is below the address_start_index of the
     // options

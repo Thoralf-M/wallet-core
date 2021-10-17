@@ -23,6 +23,8 @@ use iota_client::{
     common::packable::Packable,
 };
 
+use std::time::Instant;
+
 /// Function to build the transaction essence
 pub(crate) async fn create_transaction(
     account_handle: &AccountHandle,
@@ -31,18 +33,19 @@ pub(crate) async fn create_transaction(
     options: Option<TransferOptions>,
 ) -> crate::Result<(Essence, Vec<TransactionInput>, Option<Remainder>)> {
     log::debug!("[TRANSFER] create_transaction");
+    let create_transaction_start_time = Instant::now();
+
     let mut total_input_amount = 0;
     let mut inputs_for_essence: Vec<Input> = Vec::new();
     let mut inputs_for_signing: Vec<TransactionInput> = Vec::new();
-    let account = account_handle.read().await;
+    let addresses = account_handle.list_addresses().await?;
     for utxo in &inputs {
         total_input_amount += utxo.amount;
         let input: Input = UtxoInput::new(utxo.transaction_id, utxo.index)?.into();
         inputs_for_essence.push(input.clone());
         // instead of finding the key_index and internal by iterating over all addresses we could also add this data to
         // the OutputData struct when syncing
-        let associated_account_address = (*account
-            .addresses()
+        let associated_account_address = (*addresses
             .iter()
             .filter(|a| a.address() == &utxo.address)
             .collect::<Vec<&AccountAddress>>()
@@ -56,7 +59,6 @@ pub(crate) async fn create_transaction(
             address_internal: associated_account_address.internal,
         });
     }
-    drop(account);
 
     let mut total_output_amount = 0;
     let mut outputs_for_essence: Vec<Output> = Vec::new();
@@ -140,5 +142,9 @@ pub(crate) async fn create_transaction(
 
     let essence = essence_builder.finish()?;
     let essence = Essence::Regular(essence);
+    log::debug!(
+        "[TRANSFER] finished create_transaction in {:.2?}",
+        create_transaction_start_time.elapsed()
+    );
     Ok((essence, inputs_for_signing, remainder))
 }

@@ -14,9 +14,10 @@ pub(crate) async fn get_addresses_with_balance(
 ) -> crate::Result<Vec<AddressWithBalance>> {
     log::debug!("[SYNC] start get_addresses_with_balance");
     let balance_sync_start_time = Instant::now();
-    let account = account_handle.read().await;
-    let address_before_syncing = account.addresses().clone();
 
+    let address_before_syncing = account_handle.list_addresses().await?;
+
+    let account = account_handle.read().await;
     let client_guard = crate::client::get_client(&account.client_options).await?;
     drop(account);
 

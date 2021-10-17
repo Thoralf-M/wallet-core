@@ -86,7 +86,9 @@ impl AccountHandle {
     /// Returns all addresses of the account
     pub async fn list_addresses(&self) -> crate::Result<Vec<AccountAddress>> {
         let account = self.read().await;
-        Ok(account.addresses().to_vec())
+        let mut all_addresses = account.public_addresses().clone();
+        all_addresses.extend(account.internal_addresses().clone());
+        Ok(all_addresses.to_vec())
     }
     /// Returns only addresses of the account with balance
     pub async fn list_addresses_with_balance(&self) -> crate::Result<Vec<AddressWithBalance>> {

@@ -16,9 +16,6 @@ const ACCOUNT_ID_PREFIX: &str = "wallet-account://";
 #[derive(Debug, Clone, Serialize)]
 #[serde(untagged)]
 pub enum AccountIdentifier {
-    /// An address identifier.
-    #[serde(with = "crate::account::types::address_serde")]
-    Address(AddressWrapper),
     // SHA-256 hash of the first address on the seed (m/44'/0'/0'/0'/0'). Required for referencing a seed in
     // Stronghold. The id should be provided by Stronghold. can we do the hashing only during interaction with
     // Stronghold? Then we could use the first address instead which could be useful
@@ -42,9 +39,7 @@ impl<'de> Deserialize<'de> for AccountIdentifier {
 // When the identifier is a string id.
 impl From<&str> for AccountIdentifier {
     fn from(value: &str) -> Self {
-        if let Ok(address) = parse_bech32_address(value) {
-            Self::Address(address)
-        } else if value.starts_with(ACCOUNT_ID_PREFIX) {
+        if value.starts_with(ACCOUNT_ID_PREFIX) {
             Self::Id(value.to_string())
         } else {
             Self::Alias(value.to_string())

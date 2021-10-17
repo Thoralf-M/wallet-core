@@ -43,7 +43,8 @@ pub struct Account {
     /// The account's signer type.
     #[serde(rename = "signerType")]
     signer_type: SignerType,
-    addresses: Vec<AccountAddress>,
+    public_addresses: Vec<AccountAddress>,
+    internal_addresses: Vec<AccountAddress>,
     // used to improve performance for syncing and getbalance because it's in most cases only a subset of all addresses
     addresses_with_balance: Vec<AddressWithBalance>,
     // stored separated from the account for performance?

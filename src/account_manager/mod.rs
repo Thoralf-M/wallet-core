@@ -76,14 +76,6 @@ impl AccountManager {
                     }
                 }
             }
-            AccountIdentifier::Address(address) => {
-                for account_handle in accounts.iter() {
-                    let account = account_handle.read().await;
-                    if account.addresses().iter().any(|a| a.address() == &address) {
-                        return Ok(account_handle.clone());
-                    }
-                }
-            }
         };
         Err(crate::Error::AccountNotFound)
     }

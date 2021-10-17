@@ -35,25 +35,31 @@ pub async fn generate_addresses(
     options: AddressGenerationOptions,
 ) -> crate::Result<Vec<AccountAddress>> {
     log::debug!("[ADDRESS GENERATION] generating {} addresses", amount);
-    let account = account_handle.read().await;
+    let mut account = account_handle.write().await;
     let signer = crate::signing::get_signer(&account.signer_type).await;
     let mut signer = signer.lock().await;
 
-    // get the highest index for the public or internal addresses so we don't generate the same addresses twice
-    let address_with_highest_index = account
-        .addresses
-        .iter()
-        .filter(|address| address.internal == options.internal)
-        .max_by_key(|a| a.key_index);
-    let highest_current_index_plus_one = match address_with_highest_index {
-        // increase index by one because this will be the index for the new address
-        Some(address) => address.key_index + 1,
-        None => 0,
+    // get the highest index for the public or internal addresses
+    let highest_current_index_plus_one = if options.internal {
+        account.internal_addresses.len()
+    } else {
+        account.public_addresses.len()
     };
-    // todo: read bech32_hrp from first address and only get it from the client if we don't have any address (so only
-    // for the first address)
-    let client_guard = client::get_client(&account.client_options).await?;
-    let bech32_hrp = client_guard.read().await.get_bech32_hrp().await?;
+
+    // get bech32_hrp
+    let bech32_hrp = {
+        match account.public_addresses.first() {
+            Some(address) => address.address.bech32_hrp.to_string(),
+            // Only when we create a new account we don't have the first address and need to get the information from
+            // the client Doesn't work for offline creating, should we use the network from the
+            // GenerateAddressMetadata instead to use `iota` or `atoi`?
+            None => {
+                let client_guard = client::get_client(&account.client_options).await?;
+                let bech32_hrp = client_guard.read().await.get_bech32_hrp().await?;
+                bech32_hrp
+            }
+        }
+    };
     let mut generate_addresses = Vec::new();
     for address_index in highest_current_index_plus_one..highest_current_index_plus_one + amount {
         let address = signer
@@ -66,11 +72,13 @@ pub async fn generate_addresses(
             used: false,
         });
     }
-    drop(account);
 
-    let mut account = account_handle.write().await;
-    // public and internal addresses aren't ordered that way, do we want to change that?
-    account.addresses.extend(generate_addresses.clone());
+    // add addresses to the account
+    if options.internal {
+        account.internal_addresses.extend(generate_addresses.clone());
+    } else {
+        account.public_addresses.extend(generate_addresses.clone());
+    };
     // todo: store account to database if storage is used
     Ok(generate_addresses)
 }
