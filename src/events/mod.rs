@@ -1,6 +1,6 @@
 pub mod types;
 
-use types::{Event, TransferProgressEvent, TransferStatusType, WalletEvent, WalletEventType};
+use types::{Event, TransferProgressEvent, WalletEvent, WalletEventType};
 
 use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
@@ -78,9 +78,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::{
-        types::{
-            Event, TransactionInclusionEvent, TransferProgressEvent, TransferStatusType, WalletEvent, WalletEventType,
-        },
+        types::{Event, TransactionInclusionEvent, TransferProgressEvent, WalletEvent, WalletEventType},
         EventEmitter,
     };
     use crate::account::types::InclusionState;
@@ -122,12 +120,7 @@ mod tests {
 
         // emit events
         emitter.emit(0, WalletEvent::ConsolidationRequired);
-        emitter.emit(
-            0,
-            WalletEvent::TransferProgress(TransferProgressEvent {
-                status: TransferStatusType::SyncingAccount,
-            }),
-        );
+        emitter.emit(0, WalletEvent::TransferProgress(TransferProgressEvent::SyncingAccount));
         emitter.emit(
             0,
             WalletEvent::TransactionInclusion(TransactionInclusionEvent {

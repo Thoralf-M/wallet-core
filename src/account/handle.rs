@@ -1,3 +1,5 @@
+#[cfg(feature = "events")]
+use crate::events::types::{TransferProgressEvent, WalletEvent};
 use crate::{
     account::{
         operations::{
@@ -13,7 +15,6 @@ use crate::{
         Account,
     },
     client::options::ClientOptions,
-    events::types::{TransferProgressEvent, TransferStatusType, WalletEvent},
 };
 
 use iota_client::bee_message::{output::OutputId, MessageId};
@@ -60,9 +61,7 @@ impl AccountHandle {
             let account_index = self.account.read().await.index;
             crate::events::EVENT_EMITTER.lock().await.emit(
                 account_index,
-                WalletEvent::TransferProgress(TransferProgressEvent {
-                    status: TransferStatusType::SyncingAccount,
-                }),
+                WalletEvent::TransferProgress(TransferProgressEvent::SyncingAccount),
             );
         }
         sync_account(

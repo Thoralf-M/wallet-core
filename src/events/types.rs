@@ -47,13 +47,7 @@ pub struct TransactionInclusionEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct TransferProgressEvent {
-    /// The transfer status.
-    pub status: TransferStatusType,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum TransferStatusType {
+pub enum TransferProgressEvent {
     /// Syncing account.
     SyncingAccount,
     /// Performing input selection.

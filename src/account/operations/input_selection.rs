@@ -2,6 +2,11 @@ use crate::account::{
     handle::AccountHandle,
     types::{OutputData, OutputKind},
 };
+#[cfg(feature = "events")]
+use crate::events::{
+    types::{Event, TransferProgressEvent, WalletEvent, WalletEventType},
+    EventEmitter,
+};
 
 use iota_client::bee_message::{
     constants::{INPUT_OUTPUT_COUNT_MAX, INPUT_OUTPUT_COUNT_RANGE},
@@ -18,6 +23,12 @@ pub(crate) async fn select_inputs(
 ) -> crate::Result<Vec<OutputData>> {
     log::debug!("[TRANSFER] select_inputs");
     let mut account = account_handle.write().await;
+    #[cfg(feature = "events")]
+    crate::events::EVENT_EMITTER.lock().await.emit(
+        account.index,
+        WalletEvent::TransferProgress(TransferProgressEvent::SelectingInputs),
+    );
+
     // todo: if custom inputs are provided we should only use them (validate if we have the outputs in this account and
     // that the amount is enough) and not others
 
@@ -78,7 +89,7 @@ pub(crate) async fn select_inputs(
         crate::events::EVENT_EMITTER
             .lock()
             .await
-            .emit(account.index, crate::events::types::WalletEvent::ConsolidationRequired);
+            .emit(account.index, WalletEvent::ConsolidationRequired);
         return Err(crate::Error::ConsolidationRequired(
             selected_outputs.len(),
             INPUT_OUTPUT_COUNT_MAX,

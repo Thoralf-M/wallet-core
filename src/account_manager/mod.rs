@@ -114,8 +114,6 @@ impl AccountManager {
     {
         let mut emitter = crate::events::EVENT_EMITTER.lock().await;
         emitter.on(events, handler);
-        // todo remove
-        emitter.emit(0, WalletEvent::ConsolidationRequired);
     }
 
     /// Generates a new random mnemonic.

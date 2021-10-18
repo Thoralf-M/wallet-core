@@ -1,3 +1,10 @@
+#[cfg(feature = "events")]
+use crate::events::{
+    types::{
+        AddressData, Event, PreparedTransactionData, TransactionIO, TransferProgressEvent, WalletEvent, WalletEventType,
+    },
+    EventEmitter,
+};
 use crate::{
     account::{
         handle::AccountHandle,
@@ -41,6 +48,10 @@ pub(crate) async fn create_transaction(
     let mut total_input_amount = 0;
     let mut inputs_for_essence: Vec<Input> = Vec::new();
     let mut inputs_for_signing: Vec<TransactionInput> = Vec::new();
+    #[cfg(feature = "events")]
+    let mut inputs_for_event: Vec<TransactionIO> = Vec::new();
+    #[cfg(feature = "events")]
+    let mut outputs_for_event: Vec<TransactionIO> = Vec::new();
     let addresses = account_handle.list_addresses_with_balance().await?;
     for utxo in &inputs {
         total_input_amount += utxo.amount;
@@ -62,11 +73,23 @@ pub(crate) async fn create_transaction(
             address_index: associated_address.key_index,
             address_internal: associated_address.internal,
         });
+        #[cfg(feature = "events")]
+        inputs_for_event.push(TransactionIO {
+            address: associated_address.address.to_bech32(),
+            amount: utxo.amount,
+            remainder: None,
+        })
     }
 
     let mut total_output_amount = 0;
     let mut outputs_for_essence: Vec<Output> = Vec::new();
     for output in outputs.iter() {
+        #[cfg(feature = "events")]
+        outputs_for_event.push(TransactionIO {
+            address: output.address.clone(),
+            amount: output.amount,
+            remainder: Some(false),
+        });
         let address = Address::try_from_bech32(&output.address)?;
         total_output_amount += output.amount;
         match output.output_kind {
@@ -102,22 +125,43 @@ pub(crate) async fn create_transaction(
                     let address = inputs.first().expect("no input provided").address;
                     AddressWrapper::new(address, bech32_hrp)
                 }
-                RemainderValueStrategy::ChangeAddress => account_handle
-                    .generate_addresses(
-                        1,
-                        Some(AddressGenerationOptions {
-                            internal: true,
-                            ..Default::default()
-                        }),
-                    )
-                    .await?
-                    .first()
-                    .expect("Didn't generated an address")
-                    .address
-                    .clone(),
+                RemainderValueStrategy::ChangeAddress => {
+                    let remainder_address = account_handle
+                        .generate_addresses(
+                            1,
+                            Some(AddressGenerationOptions {
+                                internal: true,
+                                ..Default::default()
+                            }),
+                        )
+                        .await?
+                        .first()
+                        .expect("Didn't generated an address")
+                        .address
+                        .clone();
+                    #[cfg(feature = "events")]
+                    {
+                        let account_index = account_handle.read().await.index;
+                        crate::events::EVENT_EMITTER.lock().await.emit(
+                            account_index,
+                            WalletEvent::TransferProgress(TransferProgressEvent::GeneratingRemainderDepositAddress(
+                                AddressData {
+                                    address: remainder_address.to_bech32(),
+                                },
+                            )),
+                        );
+                    }
+                    remainder_address
+                }
                 RemainderValueStrategy::CustomAddress(address) => address,
             }
         };
+        #[cfg(feature = "events")]
+        outputs_for_event.push(TransactionIO {
+            address: remainder_address.to_bech32(),
+            amount: remainder_value,
+            remainder: Some(true),
+        });
         remainder.replace(Remainder {
             address: remainder_address.inner,
             amount: remainder_value,
@@ -142,14 +186,33 @@ pub(crate) async fn create_transaction(
     essence_builder = essence_builder.with_outputs(outputs_for_essence);
 
     // Optional add indexation payload
+    #[cfg(feature = "events")]
+    let mut indexation_data: Option<String> = None;
     if let Some(options) = options {
         if let Some(indexation) = &options.indexation {
+            #[cfg(feature = "events")]
+            {
+                indexation_data = Some(hex::encode(indexation.data()));
+            }
             essence_builder = essence_builder.with_payload(Payload::Indexation(Box::new(indexation.clone())));
         }
     }
 
     let essence = essence_builder.finish()?;
     let essence = Essence::Regular(essence);
+
+    #[cfg(feature = "events")]
+    {
+        let account_index = account_handle.read().await.index;
+        crate::events::EVENT_EMITTER.lock().await.emit(
+            account_index,
+            WalletEvent::TransferProgress(TransferProgressEvent::PreparedTransaction(PreparedTransactionData {
+                inputs: inputs_for_event,
+                outputs: outputs_for_event,
+                data: indexation_data,
+            })),
+        );
+    }
     log::debug!(
         "[TRANSFER] finished create_transaction in {:.2?}",
         create_transaction_start_time.elapsed()

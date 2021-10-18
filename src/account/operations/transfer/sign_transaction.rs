@@ -1,3 +1,8 @@
+#[cfg(feature = "events")]
+use crate::events::{
+    types::{Event, TransferProgressEvent, WalletEvent, WalletEventType},
+    EventEmitter,
+};
 use crate::{
     account::{
         handle::AccountHandle,
@@ -23,6 +28,11 @@ pub(crate) async fn sign_tx_essence(
 ) -> crate::Result<TransactionPayload> {
     log::debug!("[TRANSFER] sign_tx_essence");
     let account = account.read().await;
+    #[cfg(feature = "events")]
+    crate::events::EVENT_EMITTER.lock().await.emit(
+        account.index,
+        WalletEvent::TransferProgress(TransferProgressEvent::SigningTransaction),
+    );
     let (remainder_deposit_address, remainder_value) = match remainder {
         Some(remainder) => (Some(remainder.address), remainder.amount),
         None => (None, 0),

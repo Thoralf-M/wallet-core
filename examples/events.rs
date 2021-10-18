@@ -4,7 +4,11 @@
 //! cargo run --example events --release
 
 use wallet_core::{
-    account_manager::AccountManager, client::options::ClientOptionsBuilder, signing::SignerType, Result,
+    account::{types::OutputKind, RemainderValueStrategy, TransferOptions, TransferOutput},
+    account_manager::AccountManager,
+    client::options::ClientOptionsBuilder,
+    signing::SignerType,
+    Result,
 };
 
 #[tokio::main]
@@ -45,6 +49,25 @@ async fn main() -> Result<()> {
 
     let balance = account.sync(None).await?;
     println!("Balance: {:?}", balance);
+
+    // send transaction
+    let outputs = vec![TransferOutput {
+        address: "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string(),
+        amount: 1_000_000,
+        // we create a dust allowance outputs so we can reuse our address even with remainder
+        output_kind: Some(OutputKind::SignatureLockedDustAllowance),
+    }];
+    // let message_id = account.send(outputs, None).await?;
+    let message_id = account
+        .send(
+            outputs,
+            Some(TransferOptions {
+                remainder_value_strategy: RemainderValueStrategy::ReuseAddress,
+                ..Default::default()
+            }),
+        )
+        .await?;
+    println!("Message sent: https://explorer.iota.org/devnet/message/{}", message_id);
 
     Ok(())
 }
