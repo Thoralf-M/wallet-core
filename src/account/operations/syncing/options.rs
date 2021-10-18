@@ -12,8 +12,8 @@ pub struct SyncOptions {
         default = "default_automatic_output_consolidation"
     )]
     pub automatic_output_consolidation: bool,
-    // 0 by default, using a higher value could result in a wrong balance since addresses with a lower index aren't
-    // synced
+    // 0 by default, using a higher value will be faster, but could result in a wrong balance, since addresses with a
+    // lower index aren't synced
     #[serde(rename = "addressStartIndex", default = "default_address_start_index")]
     pub address_start_index: usize,
     // 0 by default, no new address should be generated during syncing

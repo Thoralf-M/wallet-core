@@ -15,7 +15,14 @@ pub(crate) async fn get_addresses_with_balance(
     log::debug!("[SYNC] start get_addresses_with_balance");
     let balance_sync_start_time = Instant::now();
 
-    let address_before_syncing = account_handle.list_addresses().await?;
+    let mut address_before_syncing = account_handle.list_addresses().await?;
+    // Filter addresses when address_start_index is not 0 so we skip these addresses
+    if options.address_start_index != 0 {
+        address_before_syncing = address_before_syncing
+            .into_iter()
+            .filter(|a| a.key_index >= options.address_start_index)
+            .collect();
+    }
 
     let account = account_handle.read().await;
     let client_guard = crate::client::get_client(&account.client_options).await?;
