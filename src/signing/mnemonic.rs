@@ -143,10 +143,10 @@ impl crate::signing::Signer for MnemonicSigner {
 mod tests {
     #[test]
     fn set_get_mnemonic() {
-        let mnemonic = iota_client::Client::generate_mnemonic().unwrap();
+        let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
         let mut mnemonic_seed = [0u8; 64];
         crypto::keys::bip39::mnemonic_to_seed(&mnemonic, "", &mut mnemonic_seed);
-        let set_mnemonic = super::set_mnemonic(mnemonic.clone()).unwrap();
+        let _ = super::set_mnemonic(mnemonic.clone());
         let get_mnemonic_seed = super::get_mnemonic_seed().unwrap();
         // we can't compare `Seed`, that's why we generate an address and compare if it's the same
         assert_eq!(
@@ -165,11 +165,9 @@ mod tests {
         use std::path::Path;
 
         let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
-        super::MnemonicSigner
-            .store_mnemonic(&Path::new(""), mnemonic)
-            .await
-            .unwrap();
-        let account = AccountBuilder::new(0).finish().unwrap();
+        let _ = super::MnemonicSigner.store_mnemonic(&Path::new(""), mnemonic).await;
+        let account_handle = AccountBuilder::new(Default::default()).finish().await.unwrap();
+        let account = account_handle.read().await;
         let address = super::MnemonicSigner
             .generate_address(
                 &account,
@@ -185,7 +183,7 @@ mod tests {
 
         assert_eq!(
             address.to_bech32("atoi"),
-            "atoi1qq42e54sldwkg8jnd87hq6t82pcxllquwkfs94k2esejfxm7fpl4k5k9gy0".to_string()
+            "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string()
         );
     }
 }

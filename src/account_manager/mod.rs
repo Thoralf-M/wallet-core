@@ -1,14 +1,15 @@
 pub(crate) mod builder;
 
+#[cfg(feature = "events")]
+use crate::events::{
+    types::{Event, WalletEvent, WalletEventType},
+    EventEmitter,
+};
 use crate::{
     account::{
         builder::AccountBuilder, handle::AccountHandle, operations::syncing::SyncOptions, types::AccountIdentifier,
     },
     client::options::ClientOptions,
-    events::{
-        types::{WalletEvent, WalletEventType},
-        EventEmitter,
-    },
     signing::SignerType,
 };
 use builder::AccountManagerBuilder;
@@ -105,15 +106,16 @@ impl AccountManager {
         Ok(())
     }
 
+    #[cfg(feature = "events")]
     /// Listen to wallet events, empty vec will listen to all events
     pub async fn listen<F>(&self, events: Vec<WalletEventType>, handler: F)
     where
-        F: Fn(&WalletEvent) + 'static + Clone + Send + Sync,
+        F: Fn(&Event) + 'static + Clone + Send + Sync,
     {
         let mut emitter = crate::events::EVENT_EMITTER.lock().await;
         emitter.on(events, handler);
         // todo remove
-        emitter.emit(WalletEvent::ConsolidationRequired(0));
+        emitter.emit(0, WalletEvent::ConsolidationRequired);
     }
 
     /// Generates a new random mnemonic.

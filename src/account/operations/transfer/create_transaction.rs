@@ -5,7 +5,10 @@ use crate::{
             address_generation::AddressGenerationOptions,
             transfer::{Remainder, RemainderValueStrategy, TransferOptions, TransferOutput, DUST_ALLOWANCE_VALUE},
         },
-        types::{address::AccountAddress, OutputData, OutputKind},
+        types::{
+            address::{AccountAddress, AddressWithBalance, AddressWrapper},
+            OutputData, OutputKind,
+        },
     },
     signing::TransactionInput,
 };
@@ -38,17 +41,17 @@ pub(crate) async fn create_transaction(
     let mut total_input_amount = 0;
     let mut inputs_for_essence: Vec<Input> = Vec::new();
     let mut inputs_for_signing: Vec<TransactionInput> = Vec::new();
-    let addresses = account_handle.list_addresses().await?;
+    let addresses = account_handle.list_addresses_with_balance().await?;
     for utxo in &inputs {
         total_input_amount += utxo.amount;
         let input: Input = UtxoInput::new(utxo.transaction_id, utxo.index)?.into();
         inputs_for_essence.push(input.clone());
         // instead of finding the key_index and internal by iterating over all addresses we could also add this data to
         // the OutputData struct when syncing
-        let associated_account_address = (*addresses
+        let associated_address = (*addresses
             .iter()
-            .filter(|a| a.address() == &utxo.address)
-            .collect::<Vec<&AccountAddress>>()
+            .filter(|a| a.address().inner == utxo.address)
+            .collect::<Vec<&AddressWithBalance>>()
             .first()
             // todo: decide if we want to change the logic so we don't have to search the address or return an Error and
             // don't panic
@@ -56,8 +59,8 @@ pub(crate) async fn create_transaction(
         .clone();
         inputs_for_signing.push(TransactionInput {
             input,
-            address_index: associated_account_address.key_index,
-            address_internal: associated_account_address.internal,
+            address_index: associated_address.key_index,
+            address_internal: associated_address.internal,
         });
     }
 
@@ -94,7 +97,11 @@ pub(crate) async fn create_transaction(
         let options_ = options.clone().unwrap_or_default();
         let remainder_address = {
             match options_.remainder_value_strategy {
-                RemainderValueStrategy::ReuseAddress => inputs.first().expect("no input provided").address.clone(),
+                RemainderValueStrategy::ReuseAddress => {
+                    let bech32_hrp = addresses[0].address.bech32_hrp.clone();
+                    let address = inputs.first().expect("no input provided").address;
+                    AddressWrapper::new(address, bech32_hrp)
+                }
                 RemainderValueStrategy::ChangeAddress => account_handle
                     .generate_addresses(
                         1,

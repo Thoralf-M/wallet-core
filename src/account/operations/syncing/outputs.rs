@@ -53,7 +53,7 @@ pub(crate) async fn output_response_to_output_data(
                 message_id: MessageId::from_str(&output.message_id)?,
                 amount,
                 is_spent: output.is_spent,
-                address: AddressWrapper::new(address, bech32_hrp.clone()),
+                address,
                 kind: output_kind,
                 network_id,
                 remainder,

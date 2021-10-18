@@ -13,6 +13,7 @@ use crate::{
         Account,
     },
     client::options::ClientOptions,
+    events::types::{TransferProgressEvent, TransferStatusType, WalletEvent},
 };
 
 use iota_client::bee_message::{output::OutputId, MessageId};
@@ -54,6 +55,16 @@ impl AccountHandle {
         options: Option<TransferOptions>,
     ) -> crate::Result<MessageId> {
         // sync account before sending a transaction
+        #[cfg(feature = "events")]
+        {
+            let account_index = self.account.read().await.index;
+            crate::events::EVENT_EMITTER.lock().await.emit(
+                account_index,
+                WalletEvent::TransferProgress(TransferProgressEvent {
+                    status: TransferStatusType::SyncingAccount,
+                }),
+            );
+        }
         sync_account(
             self,
             &SyncOptions {
@@ -66,9 +77,9 @@ impl AccountHandle {
     }
 
     /// Reattaches or promotes a message to get it confirmed
-    pub async fn retry(message_id: MessageId, sync: bool) -> crate::Result<MessageId> {
-        Ok(MessageId::from_str("")?)
-    }
+    // pub async fn retry(message_id: MessageId, sync: bool) -> crate::Result<MessageId> {
+    //     Ok(MessageId::from_str("")?)
+    // }
 
     /// Generate addresses
     pub async fn generate_addresses(
@@ -77,9 +88,6 @@ impl AccountHandle {
         options: Option<AddressGenerationOptions>,
     ) -> crate::Result<Vec<AccountAddress>> {
         let options = options.unwrap_or_default();
-        // todo remove
-        let emitter = crate::events::EVENT_EMITTER.lock().await;
-        emitter.emit(crate::events::types::WalletEvent::ConsolidationRequired(0));
         address_generation::generate_addresses(self, amount, options).await
     }
 
@@ -125,7 +133,19 @@ impl AccountHandle {
         log::debug!("[SET_CLIENT_OPTIONS]");
         let mut account = self.account.write().await;
         account.client_options = options;
-        // do we need to update the bech32_hrp for all addresses here?
+        let client_guard = crate::client::get_client(&account.client_options).await?;
+        let client = client_guard.read().await;
+        let bech32_hrp = client.get_bech32_hrp().await?;
+        drop(client);
+        for address in &mut account.addresses_with_balance {
+            address.address.bech32_hrp = bech32_hrp.clone();
+        }
+        for address in &mut account.public_addresses {
+            address.address.bech32_hrp = bech32_hrp.clone();
+        }
+        for address in &mut account.internal_addresses {
+            address.address.bech32_hrp = bech32_hrp.clone();
+        }
         drop(account);
         // after we set the new client options we should sync the account because the network could have changed
         // we sync with all addresses, because otherwise the balance wouldn't get updated if an address doesn't has

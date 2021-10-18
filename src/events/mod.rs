@@ -1,6 +1,6 @@
 pub mod types;
 
-use types::{TransferProgressEvent, TransferStatusType, WalletEvent, WalletEventType};
+use types::{Event, TransferProgressEvent, TransferStatusType, WalletEvent, WalletEventType};
 
 use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
@@ -13,7 +13,7 @@ pub(crate) static EVENT_EMITTER: Lazy<EventEmitterWrapper> = Lazy::new(Default::
 type Handler<T> = Box<dyn Fn(&T) + Send + Sync + 'static>;
 
 pub struct EventEmitter {
-    handlers: HashMap<WalletEventType, Vec<Handler<WalletEvent>>>,
+    handlers: HashMap<WalletEventType, Vec<Handler<Event>>>,
 }
 
 impl EventEmitter {
@@ -28,7 +28,7 @@ impl EventEmitter {
     /// multiple listeners for a single event.
     pub fn on<F>(&mut self, events: Vec<WalletEventType>, handler: F)
     where
-        F: Fn(&WalletEvent) + 'static + Clone + Send + Sync,
+        F: Fn(&Event) + 'static + Clone + Send + Sync,
     {
         // if no event is provided the handler is registered for all event types
         if events.is_empty() {
@@ -51,13 +51,14 @@ impl EventEmitter {
 
     /// Invokes all listeners of `event`, passing a reference to `payload` as an
     /// argument to each of them.
-    pub fn emit(&self, event: WalletEvent) {
+    pub fn emit(&self, account_index: usize, event: WalletEvent) {
         let event_type = match &event {
             WalletEvent::BalanceChange(_) => WalletEventType::BalanceChange,
             WalletEvent::TransactionInclusion(_) => WalletEventType::TransactionInclusion,
             WalletEvent::TransferProgress(_) => WalletEventType::TransferProgress,
-            WalletEvent::ConsolidationRequired(_) => WalletEventType::ConsolidationRequired,
+            WalletEvent::ConsolidationRequired => WalletEventType::ConsolidationRequired,
         };
+        let event = Event { account_index, event };
         if let Some(handlers) = self.handlers.get(&event_type) {
             for handler in handlers {
                 handler(&event);
@@ -78,11 +79,11 @@ mod tests {
 
     use super::{
         types::{
-            InclusionState, TransactionInclusionEvent, TransferProgressEvent, TransferStatusType, WalletEvent,
-            WalletEventType,
+            Event, TransactionInclusionEvent, TransferProgressEvent, TransferStatusType, WalletEvent, WalletEventType,
         },
         EventEmitter,
     };
+    use crate::account::types::InclusionState;
 
     use iota_client::bee_message::payload::transaction::TransactionId;
 
@@ -120,20 +121,27 @@ mod tests {
         });
 
         // emit events
-        emitter.emit(WalletEvent::ConsolidationRequired(0));
-        emitter.emit(WalletEvent::TransferProgress(TransferProgressEvent {
-            account_id: "some_account".to_string(),
-            status: TransferStatusType::SyncingAccount,
-        }));
-        emitter.emit(WalletEvent::TransactionInclusion(TransactionInclusionEvent {
-            transaction_id: TransactionId::from_str("2289d9981fb23cc5f4f6c2742685eeb480f8476089888aa886a18232bad81989")
+        emitter.emit(0, WalletEvent::ConsolidationRequired);
+        emitter.emit(
+            0,
+            WalletEvent::TransferProgress(TransferProgressEvent {
+                status: TransferStatusType::SyncingAccount,
+            }),
+        );
+        emitter.emit(
+            0,
+            WalletEvent::TransactionInclusion(TransactionInclusionEvent {
+                transaction_id: TransactionId::from_str(
+                    "2289d9981fb23cc5f4f6c2742685eeb480f8476089888aa886a18232bad81989",
+                )
                 .expect("Invalid tx id"),
-            inclusion_state: InclusionState::Confirmed,
-        }));
+                inclusion_state: InclusionState::Confirmed,
+            }),
+        );
 
         assert_eq!(3, event_counter.load(Ordering::SeqCst));
         for _ in 0..1_000_000 {
-            emitter.emit(WalletEvent::ConsolidationRequired(0));
+            emitter.emit(0, WalletEvent::ConsolidationRequired);
         }
         assert_eq!(1_000_003, event_counter.load(Ordering::SeqCst));
     }

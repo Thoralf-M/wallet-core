@@ -3,7 +3,10 @@ use crate::account::{
     types::{OutputData, OutputKind},
 };
 
-use iota_client::bee_message::output::OutputId;
+use iota_client::bee_message::{
+    constants::{INPUT_OUTPUT_COUNT_MAX, INPUT_OUTPUT_COUNT_RANGE},
+    output::OutputId,
+};
 
 const DUST_ALLOWANCE_VALUE: u64 = 1_000_000;
 
@@ -70,6 +73,18 @@ pub(crate) async fn select_inputs(
             remainder_value
         )));
     }
+    if !INPUT_OUTPUT_COUNT_RANGE.contains(&selected_outputs.len()) {
+        #[cfg(feature = "events")]
+        crate::events::EVENT_EMITTER
+            .lock()
+            .await
+            .emit(account.index, crate::events::types::WalletEvent::ConsolidationRequired);
+        return Err(crate::Error::ConsolidationRequired(
+            selected_outputs.len(),
+            INPUT_OUTPUT_COUNT_MAX,
+        ));
+    }
+
     // lock outputs so they don't get used by another transaction
     for output in &selected_outputs {
         // log::debug!(

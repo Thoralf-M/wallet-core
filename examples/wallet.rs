@@ -7,7 +7,7 @@ use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigB
 use log::LevelFilter;
 use std::time::Instant;
 use wallet_core::{
-    account::{types::OutputKind, AddressGenerationOptions, RemainderValueStrategy, TransferOptions, TransferOutput},
+    account::{types::OutputKind, RemainderValueStrategy, TransferOptions, TransferOutput},
     account_manager::AccountManager,
     client::options::ClientOptionsBuilder,
     signing::SignerType,

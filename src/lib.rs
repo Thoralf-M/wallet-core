@@ -13,6 +13,7 @@ pub mod account_manager;
 pub mod client;
 /// The error module.
 pub mod error;
+#[cfg(feature = "events")]
 /// The event module.
 pub mod events;
 /// Signing interfaces.

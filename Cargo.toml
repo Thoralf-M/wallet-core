@@ -35,10 +35,11 @@ hex = "0.4.3"
 
 [features]
 # only default for now, should later be replaced by stronghold since stronghold is more secure
-default = ["mnemonic"]
+default = ["mnemonic", "events"]
 # ledger-nano = ["iota-ledger"]
 # ledger-nano-simulator = ["iota-ledger"]
 # stronghold = []
 # storage = []
 # actor = []
+events = []
 mnemonic = []

@@ -3,6 +3,7 @@ pub(crate) mod address_serde;
 use address::{parse_bech32_address, AddressWrapper};
 
 use iota_client::bee_message::{
+    address::Address,
     payload::transaction::{TransactionId, TransactionPayload},
     MessageId,
 };
@@ -86,8 +87,7 @@ pub struct OutputData {
     #[serde(rename = "isSpent")]
     pub is_spent: bool,
     /// Associated address.
-    #[serde(with = "crate::account::types::address_serde")]
-    pub address: AddressWrapper,
+    pub address: Address,
     pub kind: OutputKind,
     /// Network ID
     #[serde(rename = "networkId")]

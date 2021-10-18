@@ -5,12 +5,20 @@ use iota_client::bee_message::payload::transaction::TransactionId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct Event {
+    /// Associated account index.
+    #[serde(rename = "accountIndex")]
+    pub account_index: usize,
+    /// The event
+    pub event: WalletEvent,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum WalletEvent {
     BalanceChange(BalanceChangeEvent),
     TransactionInclusion(TransactionInclusionEvent),
     TransferProgress(TransferProgressEvent),
-    // account index
-    ConsolidationRequired(usize),
+    ConsolidationRequired,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -23,8 +31,6 @@ pub enum WalletEventType {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct BalanceChangeEvent {
-    /// Associated account.
-    pub account_id: String,
     /// The address.
     pub address: AddressWrapper,
     /// The balance change data.
@@ -42,9 +48,6 @@ pub struct TransactionInclusionEvent {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TransferProgressEvent {
-    #[serde(rename = "accountId")]
-    /// The associated account identifier.
-    pub account_id: String,
     /// The transfer status.
     pub status: TransferStatusType,
 }
@@ -69,9 +72,6 @@ pub enum TransferStatusType {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct AddressConsolidationNeeded {
-    /// The associated account identifier.
-    #[serde(rename = "accountId")]
-    pub account_id: String,
     /// The associated address.
     #[serde(with = "crate::account::types::address_serde")]
     pub address: AddressWrapper,
@@ -79,9 +79,6 @@ pub struct AddressConsolidationNeeded {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct LedgerAddressGeneration {
-    #[serde(rename = "accountId")]
-    /// The associated account identifier.
-    pub account_id: String,
     /// The transfer event type.
     pub event: AddressData,
 }
