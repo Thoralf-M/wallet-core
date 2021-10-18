@@ -8,7 +8,7 @@ use crate::{
         },
         types::{
             address::{AccountAddress, AddressWithBalance},
-            AccountBalance, Transaction,
+            AccountBalance, OutputData, Transaction,
         },
         Account,
     },
@@ -98,10 +98,53 @@ impl AccountHandle {
         all_addresses.extend(account.internal_addresses().clone());
         Ok(all_addresses.to_vec())
     }
+
     /// Returns only addresses of the account with balance
     pub async fn list_addresses_with_balance(&self) -> crate::Result<Vec<AddressWithBalance>> {
         let account = self.read().await;
         Ok(account.addresses_with_balance().to_vec())
+    }
+
+    /// Returns all outputs of the account
+    pub async fn list_outputs(&self) -> crate::Result<Vec<OutputData>> {
+        let account = self.read().await;
+        let mut outputs = Vec::new();
+        for output in account.outputs.values() {
+            outputs.push(output.clone());
+        }
+        Ok(outputs)
+    }
+
+    /// Returns all unspent outputs of the account
+    pub async fn list_unspent_outputs(&self) -> crate::Result<Vec<OutputData>> {
+        let account = self.read().await;
+        let mut outputs = Vec::new();
+        for output in account.unspent_outputs.values() {
+            outputs.push(output.clone());
+        }
+        Ok(outputs)
+    }
+
+    /// Returns all transaction of the account
+    pub async fn list_transactions(&self) -> crate::Result<Vec<Transaction>> {
+        let account = self.read().await;
+        let mut transactions = Vec::new();
+        for transaction in account.transactions.values() {
+            transactions.push(transaction.clone());
+        }
+        Ok(transactions)
+    }
+
+    /// Returns all pending transaction of the account
+    pub async fn list_pending_transactions(&self) -> crate::Result<Vec<Transaction>> {
+        let account = self.read().await;
+        let mut transactions = Vec::new();
+        for transaction_id in &account.pending_transactions {
+            if let Some(transaction) = account.transactions.get(transaction_id) {
+                transactions.push(transaction.clone());
+            }
+        }
+        Ok(transactions)
     }
 
     /// Get the total and available blance of an account
