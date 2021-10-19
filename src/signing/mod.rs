@@ -1,4 +1,4 @@
-use crate::account::Account;
+use crate::account::{types::address::AccountAddress, Account};
 use iota_client::bee_message::{address::Address, input::Input};
 
 use getset::Getters;
@@ -8,6 +8,8 @@ use tokio::sync::Mutex;
 
 use std::{collections::HashMap, path::Path, sync::Arc};
 
+#[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+pub(crate) mod ledger;
 #[cfg(feature = "mnemonic")]
 pub(crate) mod mnemonic;
 
@@ -23,7 +25,7 @@ pub enum SignerType {
     #[cfg_attr(docsrs, doc(cfg(feature = "stronghold")))]
     Stronghold,
     /// Ledger Device
-    #[cfg(feature = "ledger-nano")]
+    #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
     LedgerNano,
     /// Ledger Speculos Simulator
     #[cfg(feature = "ledger-nano-simulator")]
@@ -73,7 +75,7 @@ fn default_signers() -> Signers {
         );
     }
 
-    #[cfg(feature = "ledger-nano")]
+    #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
     {
         signers.insert(
             SignerType::LedgerNano,
@@ -104,12 +106,6 @@ fn default_signers() -> Signers {
             )),
         );
     }
-    signers.insert(
-        SignerType::Mnemonic,
-        Arc::new(Mutex::new(
-            Box::new(self::mnemonic::MnemonicSigner::default()) as Box<dyn Signer + Sync + Send>
-        )),
-    );
 
     Arc::new(Mutex::new(signers))
 }
@@ -141,7 +137,7 @@ pub struct SignMessageMetadata<'a> {
     /// The transfer's remainder value.
     pub remainder_value: u64,
     /// The transfer's deposit address for the remainder value if any.
-    pub remainder_deposit_address: Option<&'a Address>,
+    pub remainder_deposit_address: Option<&'a AccountAddress>,
     /// The network which is used so the correct BIP32 path is used for the ledger. Debug mode starts with 44'/1' and
     /// in mainnet-mode it's 44'/4218'
     pub network: Network,

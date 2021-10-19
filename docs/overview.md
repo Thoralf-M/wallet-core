@@ -19,7 +19,7 @@ For the interaction with the Tangle the [iota_client](https://github.com/iotaled
 
 A signer is used to generate adddresses and sign transactions, it will be used by an account.
 
-Possible types are [Stronghold](https://github.com/iotaledger/stronghold.rs/), Ledger, LedgerSimulator, Mnemonic.
+Possible types are [Stronghold](https://github.com/iotaledger/stronghold.rs/), Ledger (only supports SignatureLockedSingle outputs), LedgerSimulator, Mnemonic and custom implementations could be added.
 
 ## Events
 

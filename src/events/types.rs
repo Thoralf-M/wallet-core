@@ -19,6 +19,8 @@ pub enum WalletEvent {
     TransactionInclusion(TransactionInclusionEvent),
     TransferProgress(TransferProgressEvent),
     ConsolidationRequired,
+    #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+    LedgerAddressGeneration(AddressData),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -27,6 +29,8 @@ pub enum WalletEventType {
     TransactionInclusion,
     TransferProgress,
     ConsolidationRequired,
+    #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+    LedgerAddressGeneration,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -69,12 +73,6 @@ pub struct AddressConsolidationNeeded {
     /// The associated address.
     #[serde(with = "crate::account::types::address_serde")]
     pub address: AddressWrapper,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct LedgerAddressGeneration {
-    /// The transfer event type.
-    pub event: AddressData,
 }
 
 /// Address event data.

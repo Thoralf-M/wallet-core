@@ -7,7 +7,7 @@ pub(crate) mod submit_transaction;
 use crate::account::{
     handle::AccountHandle,
     operations::input_selection::select_inputs,
-    types::{InclusionState, OutputData, Transaction},
+    types::{address::AccountAddress, InclusionState, OutputData, Transaction},
 };
 pub use options::{RemainderValueStrategy, TransferOptions, TransferOutput};
 
@@ -25,7 +25,7 @@ const DUST_ALLOWANCE_VALUE: u64 = 1_000_000;
 
 // Data for signing metadata (used for ledger signer)
 pub(crate) struct Remainder {
-    address: Address,
+    address: AccountAddress,
     amount: u64,
 }
 

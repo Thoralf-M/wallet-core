@@ -1,3 +1,8 @@
+#[cfg(feature = "events")]
+use crate::events::{
+    types::{AddressData, Event, TransferProgressEvent, WalletEvent, WalletEventType},
+    EventEmitter,
+};
 use crate::{
     account::{
         handle::AccountHandle,
@@ -62,11 +67,32 @@ pub async fn generate_addresses(
     };
     let mut generate_addresses = Vec::new();
     for address_index in highest_current_index_plus_one..highest_current_index_plus_one + amount {
+        #[cfg(all(feature = "events", feature = "ledger-nano"))]
+        // If we don't sync, then we want to display the prompt on the ledger with the address. But the user needs to
+        // have it visible on the computer first, so we need to generate it without the prompt first
+        if !options.metadata.syncing {
+            let mut changed_metadata = options.metadata.clone();
+            changed_metadata.syncing = true;
+            let address = signer
+                .generate_address(&account, address_index, options.internal, changed_metadata)
+                .await?;
+            let address_wrapper = AddressWrapper::new(address, bech32_hrp.clone());
+            crate::events::EVENT_EMITTER.lock().await.emit(
+                account.index,
+                WalletEvent::LedgerAddressGeneration(AddressData {
+                    address: address_wrapper.to_bech32(),
+                }),
+            );
+        }
+
         let address = signer
             .generate_address(&account, address_index, options.internal, options.metadata.clone())
             .await?;
+
+        let address_wrapper = AddressWrapper::new(address, bech32_hrp.clone());
+
         generate_addresses.push(AccountAddress {
-            address: AddressWrapper::new(address, bech32_hrp.clone()),
+            address: address_wrapper,
             key_index: address_index,
             internal: options.internal,
             used: false,

@@ -1,4 +1,4 @@
-use crate::account::types::{address::AddressWrapper, OutputKind};
+use crate::account::types::{address::AccountAddress, OutputKind};
 
 use iota_client::bee_message::{output::OutputId, payload::indexation::IndexationPayload};
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,7 @@ pub struct TransferOutput {
 
 #[allow(clippy::enum_variant_names)]
 /// The strategy to use for the remainder value management when sending funds.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "strategy", content = "value")]
 pub enum RemainderValueStrategy {
     /// Keep the remainder value on the source address.
@@ -35,8 +35,7 @@ pub enum RemainderValueStrategy {
     /// Move the remainder value to a change address.
     ChangeAddress,
     /// Move the remainder value to any specified address.
-    #[serde(with = "crate::account::types::address_serde")]
-    CustomAddress(AddressWrapper),
+    CustomAddress(AccountAddress),
 }
 
 impl Default for RemainderValueStrategy {

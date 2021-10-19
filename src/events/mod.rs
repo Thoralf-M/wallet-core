@@ -38,6 +38,8 @@ impl EventEmitter {
                 WalletEventType::TransactionInclusion,
                 WalletEventType::TransferProgress,
                 WalletEventType::ConsolidationRequired,
+                #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+                WalletEventType::LedgerAddressGeneration,
             ] {
                 let event_handlers = self.handlers.entry(event_type).or_insert_with(Vec::new);
                 event_handlers.push(Box::new(handler.clone()));
@@ -57,6 +59,8 @@ impl EventEmitter {
             WalletEvent::TransactionInclusion(_) => WalletEventType::TransactionInclusion,
             WalletEvent::TransferProgress(_) => WalletEventType::TransferProgress,
             WalletEvent::ConsolidationRequired => WalletEventType::ConsolidationRequired,
+            #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+            WalletEvent::LedgerAddressGeneration(_) => WalletEventType::LedgerAddressGeneration,
         };
         let event = Event { account_index, event };
         if let Some(handlers) = self.handlers.get(&event_type) {

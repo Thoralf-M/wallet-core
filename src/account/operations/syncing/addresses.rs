@@ -3,6 +3,12 @@ use crate::account::{
     operations::syncing::{SyncOptions, SYNC_CHUNK_SIZE},
     types::address::{AccountAddress, AddressWithBalance},
 };
+#[cfg(feature = "events")]
+use crate::events::{
+    types::{Event, TransferProgressEvent, WalletEvent, WalletEventType},
+    EventEmitter,
+};
+
 use iota_client::bee_message::output::OutputId;
 
 use std::{collections::HashSet, str::FromStr, time::Instant};
@@ -88,6 +94,9 @@ pub(crate) async fn get_address_output_ids(
     let account = account_handle.read().await;
 
     let client_guard = crate::client::get_client(&account.client_options).await?;
+    #[cfg(feature = "events")]
+    let (account_index, consolidation_threshold) =
+        (account.index, account.account_options.output_consolidation_threshold);
     drop(account);
 
     let mut found_outputs = Vec::new();
@@ -119,6 +128,13 @@ pub(crate) async fn get_address_output_ids(
             if !outputs_response.output_ids.is_empty() || options.sync_all_addresses {
                 for output_id in &outputs_response.output_ids {
                     found_outputs.push(OutputId::from_str(output_id)?);
+                }
+                #[cfg(feature = "events")]
+                if outputs_response.output_ids.len() > consolidation_threshold {
+                    crate::events::EVENT_EMITTER
+                        .lock()
+                        .await
+                        .emit(account_index, WalletEvent::ConsolidationRequired);
                 }
             }
         }

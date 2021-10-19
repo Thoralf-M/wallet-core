@@ -121,9 +121,16 @@ pub(crate) async fn create_transaction(
         let remainder_address = {
             match options_.remainder_value_strategy {
                 RemainderValueStrategy::ReuseAddress => {
-                    let bech32_hrp = addresses[0].address.bech32_hrp.clone();
-                    let address = inputs.first().expect("no input provided").address;
-                    AddressWrapper::new(address, bech32_hrp)
+                    let address_with_balance = addresses
+                        .iter()
+                        .find(|address| address.address.inner == inputs.first().expect("no input provided").address)
+                        .expect("Input address not found");
+                    AccountAddress {
+                        address: address_with_balance.address.clone(),
+                        internal: address_with_balance.internal,
+                        key_index: address_with_balance.key_index,
+                        used: true,
+                    }
                 }
                 RemainderValueStrategy::ChangeAddress => {
                     let remainder_address = account_handle
@@ -137,7 +144,6 @@ pub(crate) async fn create_transaction(
                         .await?
                         .first()
                         .expect("Didn't generated an address")
-                        .address
                         .clone();
                     #[cfg(feature = "events")]
                     {
@@ -146,7 +152,7 @@ pub(crate) async fn create_transaction(
                             account_index,
                             WalletEvent::TransferProgress(TransferProgressEvent::GeneratingRemainderDepositAddress(
                                 AddressData {
-                                    address: remainder_address.to_bech32(),
+                                    address: remainder_address.address.to_bech32(),
                                 },
                             )),
                         );
@@ -158,19 +164,20 @@ pub(crate) async fn create_transaction(
         };
         #[cfg(feature = "events")]
         outputs_for_event.push(TransactionIO {
-            address: remainder_address.to_bech32(),
+            address: remainder_address.address.to_bech32(),
             amount: remainder_value,
             remainder: Some(true),
         });
         remainder.replace(Remainder {
-            address: remainder_address.inner,
+            address: remainder_address.clone(),
             amount: remainder_value,
         });
         match options_.remainder_output_kind {
-            Some(OutputKind::SignatureLockedDustAllowance) => outputs_for_essence
-                .push(SignatureLockedDustAllowanceOutput::new(remainder_address.inner, remainder_value)?.into()),
+            Some(OutputKind::SignatureLockedDustAllowance) => outputs_for_essence.push(
+                SignatureLockedDustAllowanceOutput::new(remainder_address.address.inner, remainder_value)?.into(),
+            ),
             _ => outputs_for_essence
-                .push(SignatureLockedSingleOutput::new(remainder_address.inner, remainder_value)?.into()),
+                .push(SignatureLockedSingleOutput::new(remainder_address.address.inner, remainder_value)?.into()),
         }
     }
 

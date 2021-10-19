@@ -30,8 +30,8 @@ impl AccountBuilder {
             signer_type: SignerType::Stronghold,
             #[cfg(all(feature = "mnemonic", not(feature = "stronghold")))]
             signer_type: SignerType::Mnemonic,
-            #[cfg(not(any(feature = "stronghold", feature = "mnemonic")))]
-            signer_type: SignerType::Mnemonic,
+            #[cfg(not(any(feature = "mnemonic", feature = "stronghold")))]
+            signer_type: SignerType::Custom("Signer unintialized".to_string()),
             accounts,
         }
     }
