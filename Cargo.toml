@@ -7,6 +7,7 @@ license = "Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# put patches on all dependencies and update only if older than 3 months for security reasons;
 tokio = { version = "1.11.0", features = ["macros", "sync", "time", "rt", "rt-multi-thread"] }
 iota-client = { git = "https://github.com/iotaledger/iota.rs", rev = "098dd71add85cfaecd03fce13d04e0d547ac2eb0" }
 log = "0.4.14"
@@ -30,8 +31,7 @@ hex = "0.4.3"
 # slog = "2.7"
 
 # ledger hardware wallets
-# iota-ledger = { git = "https://github.com/iotaledger/ledger.rs", rev = "8c239b13b80e169aaa19cde9cd825e8444be0973", optional = true  }
-iota-ledger = { path = "../ledger.rs",  optional = true  }
+iota-ledger = { git = "https://github.com/iotaledger/ledger.rs", rev = "8c239b13b80e169aaa19cde9cd825e8444be0973", optional = true  }
 
 
 [features]
