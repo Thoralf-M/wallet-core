@@ -13,7 +13,7 @@ use std::{
     time::Duration,
 };
 
-const DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD: usize = 20;
+const DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD: usize = 100;
 const DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD: usize = 16;
 
 pub struct AccountBuilder {

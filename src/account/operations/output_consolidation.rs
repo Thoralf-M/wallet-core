@@ -23,18 +23,11 @@ pub(crate) async fn consolidate_outputs(
     account_handle: &AccountHandle,
 ) -> crate::Result<Vec<(Option<MessageId>, TransactionId)>> {
     let account = account_handle.read().await;
-
+    let output_consolidation_threshold = account.account_options.output_consolidation_threshold;
     let addresses_that_need_consolidation: Vec<&AddressWithBalance> = account
         .addresses_with_balance
         .iter()
-        .filter(|a| {
-            println!(
-                "outputs len: {}/{}",
-                a.output_ids.len(),
-                account.account_options.output_consolidation_threshold
-            );
-            a.output_ids.len() >= account.account_options.output_consolidation_threshold
-        })
+        .filter(|a| a.output_ids.len() >= output_consolidation_threshold)
         .collect();
 
     if addresses_that_need_consolidation.is_empty() {
@@ -58,7 +51,15 @@ pub(crate) async fn consolidate_outputs(
                 }
             }
         }
-        outputs_to_consolidate.push(unspent_outputs);
+        // only consolidate if the unlocked outputs are >= output_consolidation_threshold
+        if unspent_outputs.len() >= output_consolidation_threshold {
+            log::debug!(
+                "[OUTPUT_CONSOLIDATION] {} has {} unspent outputs",
+                address.address.to_bech32(),
+                unspent_outputs.len()
+            );
+            outputs_to_consolidate.push(unspent_outputs);
+        }
     }
     drop(account);
 
@@ -88,7 +89,11 @@ pub(crate) async fn consolidate_outputs(
             .await
             {
                 Ok(res) => {
-                    log::debug!("Consolidation transaction sent: msg_id: {:?} tx_id: {:?}", res.0, res.1);
+                    log::debug!(
+                        "[OUTPUT_CONSOLIDATION] Consolidation transaction sent: msg_id: {:?} tx_id: {:?}",
+                        res.0,
+                        res.1
+                    );
                     consolidation_results.push(res);
                 }
                 Err(e) => log::debug!("Consolidation error: {}", e),

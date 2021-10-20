@@ -65,7 +65,7 @@ async fn main() -> Result<()> {
                 tokio::spawn(async move {
                     // send transaction
                     let outputs = vec![TransferOutput {
-                        address: "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string(),
+                        address: "atoi1qzvhzythy64dzx456ccvus357hvhg77cmqrrw4ukuszprtu9fay5ywp5ncz".to_string(),
                         amount: 1_000_000,
                         // we create a dust allowance outputs so we can reuse the address even with remainder
                         output_kind: Some(OutputKind::SignatureLockedSingle),
