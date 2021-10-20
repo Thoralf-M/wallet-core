@@ -5,66 +5,13 @@ use address::{parse_bech32_address, AddressWrapper};
 
 use iota_client::bee_message::{
     address::Address,
+    output::OutputId,
     payload::transaction::{TransactionId, TransactionPayload},
     MessageId,
 };
 use serde::{Deserialize, Deserializer, Serialize};
 
 use std::str::FromStr;
-
-/// The account identifier.
-#[derive(Debug, Clone, Serialize)]
-#[serde(untagged)]
-pub enum AccountIdentifier {
-    // SHA-256 hash of the first address on the seed (m/44'/0'/0'/0'/0'). Required for referencing a seed in
-    // Stronghold. The id should be provided by Stronghold. can we do the hashing only during interaction with
-    // Stronghold? Then we could use the first address instead which could be useful
-    Id(String),
-    /// Account alias as identifier.
-    Alias(String),
-    /// An index identifier.
-    Index(usize),
-}
-
-impl<'de> Deserialize<'de> for AccountIdentifier {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        Ok(AccountIdentifier::from(s))
-    }
-}
-
-// When the identifier is a string id.
-impl From<&str> for AccountIdentifier {
-    fn from(value: &str) -> Self {
-        if value.starts_with(ACCOUNT_ID_PREFIX) {
-            Self::Id(value.to_string())
-        } else {
-            Self::Alias(value.to_string())
-        }
-    }
-}
-
-impl From<String> for AccountIdentifier {
-    fn from(value: String) -> Self {
-        Self::from(value.as_str())
-    }
-}
-
-impl From<&String> for AccountIdentifier {
-    fn from(value: &String) -> Self {
-        Self::from(value.as_str())
-    }
-}
-
-// When the identifier is an index.
-impl From<usize> for AccountIdentifier {
-    fn from(value: usize) -> Self {
-        Self::Index(value)
-    }
-}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AccountBalance {
@@ -74,10 +21,9 @@ pub struct AccountBalance {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OutputData {
-    // todo: Store output id instead of transaction id and index?
-    #[serde(rename = "transactionId")]
-    pub transaction_id: TransactionId,
-    pub index: u16,
+    /// The output id
+    #[serde(rename = "outputId")]
+    pub output_id: OutputId,
     /// Message ID
     #[serde(rename = "messageId")]
     pub message_id: MessageId,
@@ -140,5 +86,59 @@ impl FromStr for OutputKind {
             _ => return Err(crate::Error::InvalidOutputKind(s.to_string())),
         };
         Ok(kind)
+    }
+}
+
+/// The account identifier.
+#[derive(Debug, Clone, Serialize)]
+#[serde(untagged)]
+pub enum AccountIdentifier {
+    // SHA-256 hash of the first address on the seed (m/44'/0'/0'/0'/0'). Required for referencing a seed in
+    // Stronghold. The id should be provided by Stronghold. can we do the hashing only during interaction with
+    // Stronghold? Then we could use the first address instead which could be useful
+    Id(String),
+    /// Account alias as identifier.
+    Alias(String),
+    /// An index identifier.
+    Index(usize),
+}
+
+impl<'de> Deserialize<'de> for AccountIdentifier {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(AccountIdentifier::from(s))
+    }
+}
+
+// When the identifier is a string id.
+impl From<&str> for AccountIdentifier {
+    fn from(value: &str) -> Self {
+        if value.starts_with(ACCOUNT_ID_PREFIX) {
+            Self::Id(value.to_string())
+        } else {
+            Self::Alias(value.to_string())
+        }
+    }
+}
+
+impl From<String> for AccountIdentifier {
+    fn from(value: String) -> Self {
+        Self::from(value.as_str())
+    }
+}
+
+impl From<&String> for AccountIdentifier {
+    fn from(value: &String) -> Self {
+        Self::from(value.as_str())
+    }
+}
+
+// When the identifier is an index.
+impl From<usize> for AccountIdentifier {
+    fn from(value: usize) -> Self {
+        Self::Index(value)
     }
 }

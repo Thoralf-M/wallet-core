@@ -104,9 +104,7 @@ pub async fn send_transfer(
 async fn unlock_inputs(account_handle: &AccountHandle, inputs: Vec<OutputData>) -> crate::Result<()> {
     let mut account = account_handle.write().await;
     for output in &inputs {
-        account
-            .locked_outputs
-            .remove(&OutputId::new(output.transaction_id, output.index)?);
+        account.locked_outputs.remove(&output.output_id);
     }
     Ok(())
 }

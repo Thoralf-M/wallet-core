@@ -121,13 +121,9 @@ async fn update_account(
     account.addresses_with_balance.extend(addresses_with_balance);
 
     for output in outputs {
-        account
-            .outputs
-            .insert(OutputId::new(output.transaction_id, output.index)?, output.clone());
+        account.outputs.insert(output.output_id, output.clone());
         if !output.is_spent {
-            account
-                .unspent_outputs
-                .insert(OutputId::new(output.transaction_id, output.index)?, output);
+            account.unspent_outputs.insert(output.output_id, output);
         }
     }
 

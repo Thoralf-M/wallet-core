@@ -56,7 +56,7 @@ pub(crate) async fn create_transaction(
     let addresses = account_handle.list_addresses_with_balance().await?;
     for utxo in &inputs {
         total_input_amount += utxo.amount;
-        let input: Input = UtxoInput::new(utxo.transaction_id, utxo.index)?.into();
+        let input = Input::Utxo(UtxoInput::from(utxo.output_id));
         inputs_for_essence.push(input.clone());
         // instead of finding the key_index and internal by iterating over all addresses we could also add this data to
         // the OutputData struct when syncing

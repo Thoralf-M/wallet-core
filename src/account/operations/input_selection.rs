@@ -56,9 +56,7 @@ pub(crate) async fn select_inputs(
         }
         // lock outputs so they don't get used by another transaction
         for output in &inputs {
-            account
-                .locked_outputs
-                .insert(OutputId::new(output.transaction_id, output.index)?);
+            account.locked_outputs.insert(output.output_id);
         }
         return Ok(inputs);
     }
@@ -70,12 +68,7 @@ pub(crate) async fn select_inputs(
     let mut dust_allowance_outputs = Vec::new();
     for (output_id, output) in account.unspent_outputs.iter() {
         // check if not in pending transaction (locked_outputs) and if from the correct network
-        if !output.is_spent
-            && !account
-                .locked_outputs
-                .contains(&OutputId::new(output.transaction_id, output.index)?)
-            && output.network_id == network_id
-        {
+        if !output.is_spent && !account.locked_outputs.contains(output_id) && output.network_id == network_id {
             match output.kind {
                 OutputKind::SignatureLockedSingle => signature_locked_outputs.push(output),
                 OutputKind::SignatureLockedDustAllowance => dust_allowance_outputs.push(output),
@@ -132,11 +125,9 @@ pub(crate) async fn select_inputs(
     for output in &selected_outputs {
         // log::debug!(
         //     "[TRANSFER] select_inputs: lock {}",
-        //     OutputId::new(output.transaction_id, output.index)?,
+        //     output.output_id,
         // );
-        account
-            .locked_outputs
-            .insert(OutputId::new(output.transaction_id, output.index)?);
+        account.locked_outputs.insert(output.output_id);
     }
     Ok(selected_outputs)
 }

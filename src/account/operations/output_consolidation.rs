@@ -80,12 +80,7 @@ pub(crate) async fn consolidate_outputs(
                 consolidation_output,
                 Some(TransferOptions {
                     skip_sync: true,
-                    custom_inputs: Some(
-                        outputs
-                            .iter()
-                            .map(|o| Ok(OutputId::new(o.transaction_id, o.index)?))
-                            .collect::<crate::Result<Vec<OutputId>>>()?,
-                    ),
+                    custom_inputs: Some(outputs.iter().map(|o| o.output_id).collect::<Vec<OutputId>>()),
                     ..Default::default()
                 }),
             )

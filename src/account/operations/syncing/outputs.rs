@@ -43,6 +43,8 @@ pub(crate) async fn output_response_to_output_data(
         .map(|output| {
             let (amount, address, output_kind) = get_output_amount_and_address(&output.output)?;
             let transaction_id = TransactionId::from_str(&output.transaction_id)?;
+            // check if we know the transaction that created this output and if we created it (if we store incoming
+            // transactions separated, then this check wouldn't be required)
             let remainder = {
                 match account.transactions.get(&transaction_id) {
                     Some(tx) => !tx.incoming,
@@ -50,8 +52,7 @@ pub(crate) async fn output_response_to_output_data(
                 }
             };
             Ok(OutputData {
-                transaction_id: TransactionId::from_str(&output.transaction_id)?,
-                index: output.output_index,
+                output_id: OutputId::new(transaction_id, output.output_index)?,
                 message_id: MessageId::from_str(&output.message_id)?,
                 amount,
                 is_spent: output.is_spent,
@@ -59,6 +60,7 @@ pub(crate) async fn output_response_to_output_data(
                 kind: output_kind,
                 network_id,
                 remainder,
+                // get this from the milestone that confirmed the message with the transaction?
                 timestamp: SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .expect("Time went backwards")

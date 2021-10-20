@@ -13,6 +13,9 @@ pub struct Event {
     pub event: WalletEvent,
 }
 
+// do we want an event for transaction confirmation or if it failed?
+// event for new detected outputs?
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum WalletEvent {
     BalanceChange(BalanceChangeEvent),
