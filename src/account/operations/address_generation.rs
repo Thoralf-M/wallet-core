@@ -67,7 +67,7 @@ pub async fn generate_addresses(
     };
     let mut generate_addresses = Vec::new();
     for address_index in highest_current_index_plus_one..highest_current_index_plus_one + amount {
-        #[cfg(all(feature = "events", feature = "ledger-nano"))]
+        #[cfg(all(feature = "events", any(feature = "ledger-nano", feature = "ledger-nano-simulator")))]
         // If we don't sync, then we want to display the prompt on the ledger with the address. But the user needs to
         // have it visible on the computer first, so we need to generate it without the prompt first
         if !options.metadata.syncing {

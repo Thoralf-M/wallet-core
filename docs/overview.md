@@ -23,14 +23,15 @@ Possible types are [Stronghold](https://github.com/iotaledger/stronghold.rs/), L
 
 ## Events
 
-The wallet emits different events to which a user can subscribe.
+With the event feature, the wallet emits different events to which a user can listen from the account manager. If no events types are specified all events are received
 
-WalletEvent {
-    BalanceChange(BalanceChangeEvent),
-    TransactionInclusion(TransactionInclusionEvent),
-    TransferProgress(TransferProgressEvent),
-    // account index
-    ConsolidationRequired(usize),
+pub enum WalletEventType {
+    BalanceChange,
+    TransactionInclusion,
+    TransferProgress,
+    ConsolidationRequired,
+    #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+    LedgerAddressGeneration,
 }
 
 ## Actor (should also be a Rust feature?)

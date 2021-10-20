@@ -75,11 +75,14 @@ impl AccountManager {
     pub async fn get_accounts(&self) -> crate::Result<Vec<AccountHandle>> {
         Ok(self.accounts.read().await.clone())
     }
-    /// Delete an account
-    pub async fn delete_account(&self, identifier: AccountIdentifier) -> crate::Result<()> {
-        Ok(())
-    }
 
+    // do want a function to delete an account? If so we have to change the account creation logic, otherwise multiple
+    // accounts could get the same index /// Delete an account
+    // pub async fn delete_account(&self, identifier: AccountIdentifier) -> crate::Result<()> {
+    // Ok(())
+    // }
+
+    // todo: find a better name for this
     // search balance, recovery from mnemonic or balance finder
     /// Function to find balances, to recover from backups
     pub async fn search_balance(

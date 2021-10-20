@@ -75,8 +75,8 @@ async fn main() -> Result<()> {
         // we create a dust allowance outputs so we can reuse our address even with remainder
         output_kind: Some(OutputKind::SignatureLockedDustAllowance),
     }];
-    // let message_id = account.send(outputs, None).await?;
-    let message_id = account
+    // let res = account.send(outputs, None).await?;
+    let res = account
         .send(
             outputs,
             Some(TransferOptions {
@@ -85,8 +85,10 @@ async fn main() -> Result<()> {
             }),
         )
         .await?;
-    println!("Message sent: https://explorer.iota.org/devnet/message/{}", message_id);
-
+    println!(
+        "Message sent: https://explorer.iota.org/devnet/message/{}",
+        res.0.expect("No message created")
+    );
     let now = Instant::now();
     let balance = account.sync(None).await?;
     println!("Syncing took: {:.2?}", now.elapsed());

@@ -9,7 +9,7 @@ use crate::events::{
     EventEmitter,
 };
 
-use iota_client::bee_message::output::OutputId;
+use iota_client::{bee_message::output::OutputId, bee_rest_api::types::responses::OutputsAddressResponse};
 
 use std::{collections::HashSet, str::FromStr, time::Instant};
 
@@ -61,6 +61,7 @@ pub(crate) async fn get_addresses_with_balance(
                         key_index: address.key_index,
                         internal: address.internal,
                         balance: balance_response.balance,
+                        output_ids: Vec::new(),
                     })
                 })
                 .await
@@ -88,7 +89,7 @@ pub(crate) async fn get_address_output_ids(
     account_handle: &AccountHandle,
     options: &SyncOptions,
     addresses_with_balance: Vec<AddressWithBalance>,
-) -> crate::Result<Vec<OutputId>> {
+) -> crate::Result<(Vec<OutputId>, Vec<AddressWithBalance>)> {
     log::debug!("[SYNC] start get_address_output_ids");
     let address_outputs_sync_start_time = Instant::now();
     let account = account_handle.read().await;
@@ -100,15 +101,14 @@ pub(crate) async fn get_address_output_ids(
     drop(account);
 
     let mut found_outputs = Vec::new();
+    let mut addresses_with_outputs = Vec::new();
     // We split the addresses into chunks so we don't get timeouts if we have thousands
-    for addresses_chunk in addresses_with_balance
+    for addresses_chunk in &mut addresses_with_balance
         .chunks(SYNC_CHUNK_SIZE)
         .map(|x: &[AddressWithBalance]| x.to_vec())
-        .into_iter()
     {
         let mut tasks = Vec::new();
         for address in addresses_chunk {
-            let address = address.clone();
             let client_guard = client_guard.clone();
             tasks.push(async move {
                 tokio::spawn(async move {
@@ -124,11 +124,15 @@ pub(crate) async fn get_address_output_ids(
         }
         let results = futures::future::try_join_all(tasks).await?;
         for res in results {
-            let (address, outputs_response) = res?;
+            let (mut address, outputs_response): (AddressWithBalance, OutputsAddressResponse) = res?;
             if !outputs_response.output_ids.is_empty() || options.sync_all_addresses {
+                let mut address_outputs = Vec::new();
                 for output_id in &outputs_response.output_ids {
                     found_outputs.push(OutputId::from_str(output_id)?);
+                    address_outputs.push(OutputId::from_str(output_id)?);
                 }
+                address.output_ids = address_outputs;
+                addresses_with_outputs.push(address);
                 #[cfg(feature = "events")]
                 if outputs_response.output_ids.len() > consolidation_threshold {
                     crate::events::EVENT_EMITTER
@@ -144,5 +148,5 @@ pub(crate) async fn get_address_output_ids(
         address_outputs_sync_start_time.elapsed()
     );
     // addresses with current outputs, historic outputs are ignored
-    Ok(found_outputs)
+    Ok((found_outputs, addresses_with_outputs))
 }

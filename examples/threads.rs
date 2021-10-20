@@ -50,7 +50,7 @@ async fn main() -> Result<()> {
         }
     };
 
-    let _address = account.generate_addresses(1, None).await?;
+    let _address = account.generate_addresses(10, None).await?;
     for ad in _address {
         println!("{}", ad.address().to_bech32());
     }
@@ -59,7 +59,7 @@ async fn main() -> Result<()> {
 
     for _ in 0..1000 {
         let mut threads = Vec::new();
-        for n in 0..6 {
+        for n in 0..2 {
             let account_ = account.clone();
             threads.push(async move {
                 tokio::spawn(async move {
@@ -68,9 +68,10 @@ async fn main() -> Result<()> {
                         address: "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string(),
                         amount: 1_000_000,
                         // we create a dust allowance outputs so we can reuse the address even with remainder
-                        output_kind: Some(OutputKind::SignatureLockedDustAllowance),
+                        output_kind: Some(OutputKind::SignatureLockedSingle),
+                        // output_kind: Some(OutputKind::SignatureLockedDustAllowance),
                     }];
-                    let message_id = account_
+                    let res = account_
                         .send(
                             outputs,
                             Some(TransferOptions {
@@ -81,7 +82,8 @@ async fn main() -> Result<()> {
                         .await?;
                     println!(
                         "Message from thread {} sent: https://explorer.iota.org/devnet/message/{}",
-                        n, message_id
+                        n,
+                        res.0.expect("No message created")
                     );
                     wallet_core::Result::Ok(n)
                 })
@@ -97,7 +99,7 @@ async fn main() -> Result<()> {
             }
         }
         println!("sleep");
-        // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
     }
     // wait until user press enter so background tasks keep running
     let mut input = String::new();

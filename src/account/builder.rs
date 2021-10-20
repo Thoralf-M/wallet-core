@@ -13,6 +13,9 @@ use std::{
     time::Duration,
 };
 
+const DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD: usize = 20;
+const DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD: usize = 16;
+
 pub struct AccountBuilder {
     client_options: Option<ClientOptions>,
     alias: Option<String>,
@@ -54,6 +57,11 @@ impl AccountBuilder {
     pub async fn finish(&self) -> crate::Result<AccountHandle> {
         let mut accounts = self.accounts.write().await;
         let index = accounts.len();
+        let consolidation_threshold = match self.signer_type {
+            #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+            SignerType::LedgerNano | SignerType::LedgerNanoSimulator => DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD,
+            _ => DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD,
+        };
         let account = Account {
             id: index.to_string(),
             index,
@@ -75,8 +83,8 @@ impl AccountBuilder {
             ),
             // sync interval, output consolidation
             account_options: AccountOptions {
-                background_syncing_interval: Duration::from_secs(5),
-                output_consolidation_threshold: 100,
+                background_syncing_interval: Duration::from_secs(7),
+                output_consolidation_threshold: consolidation_threshold,
                 automatic_output_consolidation: true,
             },
         };

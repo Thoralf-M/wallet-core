@@ -17,7 +17,7 @@ use crate::{
     client::options::ClientOptions,
 };
 
-use iota_client::bee_message::{output::OutputId, MessageId};
+use iota_client::bee_message::{output::OutputId, payload::transaction::TransactionId, MessageId};
 use tokio::sync::{Mutex, RwLock};
 
 use std::{ops::Deref, str::FromStr, sync::Arc};
@@ -45,8 +45,8 @@ impl AccountHandle {
     }
 
     /// Consolidate outputs from addresses that have more outputs than the consolidation threshold
-    async fn consolidate_outputs(account: &Account) -> crate::Result<Vec<Transaction>> {
-        Ok(vec![])
+    async fn consolidate_outputs(&self) -> crate::Result<Vec<(Option<MessageId>, TransactionId)>> {
+        crate::account::operations::output_consolidation::consolidate_outputs(self).await
     }
 
     /// Send a transaction
@@ -54,7 +54,7 @@ impl AccountHandle {
         &self,
         outputs: Vec<TransferOutput>,
         options: Option<TransferOptions>,
-    ) -> crate::Result<MessageId> {
+    ) -> crate::Result<(Option<MessageId>, TransactionId)> {
         // sync account before sending a transaction
         #[cfg(feature = "events")]
         {
@@ -64,14 +64,16 @@ impl AccountHandle {
                 WalletEvent::TransferProgress(TransferProgressEvent::SyncingAccount),
             );
         }
-        sync_account(
-            self,
-            &SyncOptions {
-                automatic_output_consolidation: false,
-                ..Default::default()
-            },
-        )
-        .await?;
+        if !options.clone().unwrap_or_default().skip_sync {
+            sync_account(
+                self,
+                &SyncOptions {
+                    automatic_output_consolidation: false,
+                    ..Default::default()
+                },
+            )
+            .await?;
+        }
         send_transfer(self, outputs, options).await
     }
 

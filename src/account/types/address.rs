@@ -39,6 +39,8 @@ pub struct AddressWithBalance {
     pub(crate) internal: bool,
     /// Balance
     pub(crate) balance: u64,
+    /// Output ids
+    pub(crate) output_ids: Vec<OutputId>,
 }
 
 /// An address and its network type.

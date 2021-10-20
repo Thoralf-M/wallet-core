@@ -5,6 +5,7 @@ pub(crate) mod transactions;
 
 use crate::account::{
     handle::AccountHandle,
+    operations::output_consolidation::consolidate_outputs,
     types::{
         address::{AccountAddress, AddressWithBalance},
         InclusionState, OutputData, Transaction,
@@ -51,17 +52,17 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
     let addresses_with_balance = addresses::get_addresses_with_balance(account_handle, options).await?;
     log::debug!("[SYNC] found {} addresses_with_balance", addresses_with_balance.len());
 
-    // get outputs only for addresses that have > 0 as balance
-    let new_output_ids =
+    // get outputs only for addresses that have > 0 as balance and add them also the the addresses_with_balance
+    let (new_output_ids, addresses_with_balance) =
         addresses::get_address_output_ids(account_handle, options, addresses_with_balance.clone()).await?;
-    // only set unspent output ids? That way we keep the account size smaller, spent outputs can still be stored also
-    // from different networks, but will have no impact
 
     let output_responses = outputs::get_outputs(account_handle, options, new_output_ids.clone()).await?;
     let outputs = outputs::output_response_to_output_data(account_handle, output_responses).await?;
 
     // only when actively called or also in the background syncing?
-    // consolidate_outputs().await?;
+    consolidate_outputs(account_handle).await?;
+
+    // add a field to the sync options to also sync incoming transactions?
 
     // update account with balances, output ids, outputs
     update_account(
@@ -156,11 +157,6 @@ async fn update_account(
         log::debug!("[SYNC] Unlocked {}", spent_output_id);
     }
     // println!("{:#?}", account);
-    Ok(())
-}
-
-async fn sync_transactions(account_handle: &AccountHandle) -> crate::Result<()> {
-    // when confirmed update balance of the addresses with the spent outputs
     Ok(())
 }
 

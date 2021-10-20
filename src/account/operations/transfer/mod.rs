@@ -15,7 +15,7 @@ use iota_client::bee_message::{
     address::Address,
     constants::{INPUT_OUTPUT_COUNT_MAX, INPUT_OUTPUT_COUNT_RANGE},
     output::OutputId,
-    payload::transaction::TransactionPayload,
+    payload::transaction::{TransactionId, TransactionPayload},
     MessageId,
 };
 
@@ -34,7 +34,7 @@ pub async fn send_transfer(
     account_handle: &AccountHandle,
     outputs: Vec<TransferOutput>,
     options: Option<TransferOptions>,
-) -> crate::Result<MessageId> {
+) -> crate::Result<(Option<MessageId>, TransactionId)> {
     log::debug!("[TRANSFER] send_transfer");
     let amount = outputs.iter().map(|x| x.amount).sum();
     // validate outputs amount
@@ -74,12 +74,13 @@ pub async fn send_transfer(
                 return Err(err);
             }
         };
+    let transaction_id = transaction_payload.id();
     // store transaction payload to account (with db feature also store the account to the db) here before sending
     let mut account = account_handle.write().await;
     let client_guard = crate::client::get_client(&account.client_options).await?;
     let network_id = client_guard.read().await.get_network_id().await?;
     account.transactions.insert(
-        transaction_payload.id(),
+        transaction_id,
         Transaction {
             payload: transaction_payload.clone(),
             message_id: None,
@@ -93,9 +94,12 @@ pub async fn send_transfer(
             internal: false,
         },
     );
-    account.pending_transactions.insert(transaction_payload.id());
+    account.pending_transactions.insert(transaction_id);
     drop(account);
-    submit_transaction::submit_transaction_payload(account_handle, transaction_payload).await
+    match submit_transaction::submit_transaction_payload(account_handle, transaction_payload).await {
+        Ok(message_id) => Ok((Some(message_id), transaction_id)),
+        Err(_) => Ok((None, transaction_id)),
+    }
 }
 
 // unlock outputs
