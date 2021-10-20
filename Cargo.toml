@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 # put patches on all dependencies and update only if older than 3 months for security reasons;
-tokio = { version = "1.11.0", features = ["macros", "sync", "time", "rt", "rt-multi-thread"] }
+tokio = { version = "1.12.0", features = ["macros", "sync", "time", "rt", "rt-multi-thread"] }
 iota-client = { git = "https://github.com/iotaledger/iota.rs", rev = "098dd71add85cfaecd03fce13d04e0d547ac2eb0" }
 log = "0.4.14"
 once_cell = "1.8.0"
