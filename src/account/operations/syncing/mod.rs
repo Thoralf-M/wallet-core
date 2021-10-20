@@ -13,6 +13,7 @@ use crate::account::{
     },
     AccountBalance,
 };
+use crate::signing::SignerType;
 pub use options::SyncOptions;
 
 use iota_client::bee_message::output::OutputId;
@@ -56,7 +57,18 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
     let outputs = outputs::output_response_to_output_data(account_handle, output_responses).await?;
 
     // only when actively called or also in the background syncing?
-    consolidate_outputs(account_handle).await?;
+    let signer_type = {
+        let account = account_handle.read().await;
+        account.signer_type.clone()
+    };
+    match signer_type {
+        #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+        // don't automatically consoldiate with ledger accounts, because they require approval from the user
+        SignerType::LedgerNano | SignerType::LedgerNanoSimulator => {}
+        _ => {
+            consolidate_outputs(account_handle).await?;
+        }
+    };
 
     // add a field to the sync options to also sync incoming transactions?
 
