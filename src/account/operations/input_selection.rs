@@ -29,8 +29,40 @@ pub(crate) async fn select_inputs(
         WalletEvent::TransferProgress(TransferProgressEvent::SelectingInputs),
     );
 
-    // todo: if custom inputs are provided we should only use them (validate if we have the outputs in this account and
-    // that the amount is enough) and not others
+    // if custom inputs are provided we should only use them (validate if we have the outputs in this account and
+    // that the amount is enough)
+    if let Some(custom_inputs) = custom_inputs {
+        let mut total_input_amount = 0;
+        let mut inputs = Vec::new();
+        for input in custom_inputs {
+            if account.locked_outputs.contains(&input) {
+                return Err(crate::Error::CustomInputError(format!(
+                    "{} already used in another transaction",
+                    input
+                )));
+            }
+            match account.unspent_outputs.get(&input) {
+                Some(output) => {
+                    total_input_amount += output.amount;
+                    inputs.push(output.clone());
+                }
+                None => return Err(crate::Error::CustomInputError(format!("Unknown input: {}", input))),
+            }
+        }
+        if total_input_amount != amount_to_send {
+            return Err(crate::Error::CustomInputError(format!(
+                "Inputs amount {} doesn't match amount to send {}",
+                total_input_amount, amount_to_send,
+            )));
+        }
+        // lock outputs so they don't get used by another transaction
+        for output in &inputs {
+            account
+                .locked_outputs
+                .insert(OutputId::new(output.transaction_id, output.index)?);
+        }
+        return Ok(inputs);
+    }
 
     let client_guard = crate::client::get_client(&account.client_options).await?;
     let network_id = client_guard.read().await.get_network_id().await?;

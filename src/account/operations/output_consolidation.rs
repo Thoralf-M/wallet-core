@@ -34,7 +34,7 @@ pub(crate) async fn consolidate_outputs(
         log::debug!("[OUTPUT_CONSOLIDATION] no consolidation needed");
         return Ok(Vec::new());
     }
-    log::debug!("[OUTPUT_CONSOLIDATION] consolidating outputs");
+    log::debug!("[OUTPUT_CONSOLIDATION] consolidating outputs if needed");
     let client_guard = crate::client::get_client(&account.client_options).await?;
     let bech32_hrp = client_guard.read().await.get_bech32_hrp().await?;
     // Get outputs for the consoldation
@@ -63,9 +63,12 @@ pub(crate) async fn consolidate_outputs(
     }
     drop(account);
 
+    if outputs_to_consolidate.is_empty() {
+        log::debug!("[OUTPUT_CONSOLIDATION] no consolidation needed");
+    }
     let mut consolidation_results = Vec::new();
     for outputs_on_one_address in outputs_to_consolidate {
-        for outputs in outputs_on_one_address.chunks(INPUT_OUTPUT_COUNT_MAX) {
+        for outputs in outputs_on_one_address.chunks(output_consolidation_threshold) {
             let output_sum = outputs.iter().map(|o| o.amount).sum();
             let consolidation_output = vec![TransferOutput {
                 address: outputs[0].address.to_bech32(&bech32_hrp),

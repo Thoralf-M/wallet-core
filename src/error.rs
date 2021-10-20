@@ -233,6 +233,9 @@ pub enum Error {
     /// Missing unlock block error
     #[error("missing unlock block")]
     MissingUnlockBlock,
+    /// Custom input error
+    #[error("custom input error {0}")]
+    CustomInputError(String),
 }
 
 // impl Drop for Error {
@@ -374,6 +377,7 @@ impl serde::Serialize for Error {
             #[cfg(feature = "mnemonic")]
             Self::MnemonicNotSet => serialize_variant(self, serializer, "MnemonicNotSet"),
             Self::MissingUnlockBlock => serialize_variant(self, serializer, "MissingUnlockBlock"),
+            Self::CustomInputError(_) => serialize_variant(self, serializer, "CustomInputError"),
         }
     }
 }
