@@ -1,5 +1,9 @@
 use crate::{
-    account::{handle::AccountHandle, Account, AccountOptions},
+    account::{
+        constants::{DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD, DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD},
+        handle::AccountHandle,
+        Account, AccountOptions,
+    },
     account_manager::AccountManager,
     client::options::{ClientOptions, ClientOptionsBuilder},
     signing::SignerType,
@@ -12,9 +16,6 @@ use std::{
     sync::Arc,
     time::Duration,
 };
-
-const DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD: usize = 10;
-const DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD: usize = 16;
 
 pub struct AccountBuilder {
     client_options: Option<ClientOptions>,

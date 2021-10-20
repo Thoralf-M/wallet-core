@@ -7,10 +7,11 @@ use crate::events::{
 };
 use crate::{
     account::{
+        constants::MIN_DUST_ALLOWANCE_VALUE,
         handle::AccountHandle,
         operations::{
             address_generation::AddressGenerationOptions,
-            transfer::{Remainder, RemainderValueStrategy, TransferOptions, TransferOutput, DUST_ALLOWANCE_VALUE},
+            transfer::{Remainder, RemainderValueStrategy, TransferOptions, TransferOutput},
         },
         types::{
             address::{AccountAddress, AddressWithBalance, AddressWrapper},
@@ -107,7 +108,7 @@ pub(crate) async fn create_transaction(
         return Err(crate::Error::InsufficientFunds(total_input_amount, total_output_amount));
     }
     let remainder_value = total_input_amount - total_output_amount;
-    if remainder_value != 0 && remainder_value < DUST_ALLOWANCE_VALUE {
+    if remainder_value != 0 && remainder_value < MIN_DUST_ALLOWANCE_VALUE {
         return Err(crate::Error::LeavingDustError(format!(
             "Transaction would leave dust behind ({}i)",
             remainder_value

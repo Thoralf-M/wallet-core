@@ -1,11 +1,13 @@
 use crate::account::{
+    constants::PARALLEL_REQUESTS_AMOUNT,
     handle::AccountHandle,
-    operations::syncing::{SyncOptions, SYNC_CHUNK_SIZE},
+    operations::syncing::SyncOptions,
     types::{
         address::{AccountAddress, AddressWrapper},
         OutputData, OutputKind,
     },
 };
+
 use iota_client::{
     bee_message::{
         address::{Address, Ed25519Address},
@@ -66,25 +68,6 @@ pub(crate) async fn output_response_to_output_data(
         .collect::<crate::Result<Vec<OutputData>>>()
 }
 
-/// Get output kind, amount and address from an OutputDto
-pub(crate) fn get_output_amount_and_address(output: &OutputDto) -> crate::Result<(u64, Address, OutputKind)> {
-    match output {
-        OutputDto::Treasury(_) => Err(crate::Error::InvalidOutputKind("Treasury".to_string())),
-        OutputDto::SignatureLockedSingle(ref r) => match &r.address {
-            AddressDto::Ed25519(addr) => {
-                let output_address = Address::from(Ed25519Address::from_str(&addr.address)?);
-                Ok((r.amount, output_address, OutputKind::SignatureLockedSingle))
-            }
-        },
-        OutputDto::SignatureLockedDustAllowance(ref r) => match &r.address {
-            AddressDto::Ed25519(addr) => {
-                let output_address = Address::from(Ed25519Address::from_str(&addr.address)?);
-                Ok((r.amount, output_address, OutputKind::SignatureLockedDustAllowance))
-            }
-        },
-    }
-}
-
 /// Get the current output ids for provided addresses
 pub(crate) async fn get_outputs(
     account_handle: &AccountHandle,
@@ -101,7 +84,7 @@ pub(crate) async fn get_outputs(
     let mut found_outputs = Vec::new();
     // We split the outputs into chunks so we don't get timeouts if we have thousands
     for output_ids_chunk in output_ids
-        .chunks(SYNC_CHUNK_SIZE)
+        .chunks(PARALLEL_REQUESTS_AMOUNT)
         .map(|x: &[OutputId]| x.to_vec())
         .into_iter()
     {
@@ -129,4 +112,23 @@ pub(crate) async fn get_outputs(
         get_outputs_sync_start_time.elapsed()
     );
     Ok(found_outputs)
+}
+
+/// Get output kind, amount and address from an OutputDto
+pub(crate) fn get_output_amount_and_address(output: &OutputDto) -> crate::Result<(u64, Address, OutputKind)> {
+    match output {
+        OutputDto::Treasury(_) => Err(crate::Error::InvalidOutputKind("Treasury".to_string())),
+        OutputDto::SignatureLockedSingle(ref r) => match &r.address {
+            AddressDto::Ed25519(addr) => {
+                let output_address = Address::from(Ed25519Address::from_str(&addr.address)?);
+                Ok((r.amount, output_address, OutputKind::SignatureLockedSingle))
+            }
+        },
+        OutputDto::SignatureLockedDustAllowance(ref r) => match &r.address {
+            AddressDto::Ed25519(addr) => {
+                let output_address = Address::from(Ed25519Address::from_str(&addr.address)?);
+                Ok((r.amount, output_address, OutputKind::SignatureLockedDustAllowance))
+            }
+        },
+    }
 }

@@ -1,5 +1,6 @@
 pub(crate) mod address;
 pub(crate) mod address_serde;
+use crate::account::constants::ACCOUNT_ID_PREFIX;
 use address::{parse_bech32_address, AddressWrapper};
 
 use iota_client::bee_message::{
@@ -10,8 +11,6 @@ use iota_client::bee_message::{
 use serde::{Deserialize, Deserializer, Serialize};
 
 use std::str::FromStr;
-
-const ACCOUNT_ID_PREFIX: &str = "wallet-account://";
 
 /// The account identifier.
 #[derive(Debug, Clone, Serialize)]

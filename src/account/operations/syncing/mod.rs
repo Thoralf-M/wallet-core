@@ -4,6 +4,7 @@ pub(crate) mod outputs;
 pub(crate) mod transactions;
 
 use crate::account::{
+    constants::MIN_SYNC_INTERVAL,
     handle::AccountHandle,
     operations::output_consolidation::consolidate_outputs,
     types::{
@@ -17,11 +18,6 @@ pub use options::SyncOptions;
 use iota_client::bee_message::output::OutputId;
 
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
-
-const SYNC_CHUNK_SIZE: usize = 500;
-// ms before an account actually syncs with the network, before it just returns the previous syncing result
-// this is done to prevent unnecessary simultaneous synchronizations
-const MIN_SYNC_INTERVAL: u128 = 5000;
 
 /// Syncs an account
 pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions) -> crate::Result<AccountBalance> {

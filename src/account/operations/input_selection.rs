@@ -1,4 +1,5 @@
 use crate::account::{
+    constants::MIN_DUST_ALLOWANCE_VALUE,
     handle::AccountHandle,
     types::{OutputData, OutputKind},
 };
@@ -12,8 +13,6 @@ use iota_client::bee_message::{
     constants::{INPUT_OUTPUT_COUNT_MAX, INPUT_OUTPUT_COUNT_RANGE},
     output::OutputId,
 };
-
-const DUST_ALLOWANCE_VALUE: u64 = 1_000_000;
 
 /// Selects inputs for a transaction
 pub(crate) async fn select_inputs(
@@ -101,7 +100,8 @@ pub(crate) async fn select_inputs(
             let value = input.amount;
             let old_sum = input_sum;
             input_sum += value;
-            old_sum < amount_to_send || (old_sum - amount_to_send < DUST_ALLOWANCE_VALUE && old_sum != amount_to_send)
+            old_sum < amount_to_send
+                || (old_sum - amount_to_send < MIN_DUST_ALLOWANCE_VALUE && old_sum != amount_to_send)
         })
         .cloned()
         .collect();
@@ -110,7 +110,7 @@ pub(crate) async fn select_inputs(
         return Err(crate::Error::InsufficientFunds(input_sum, amount_to_send));
     }
     let remainder_value = input_sum - amount_to_send;
-    if remainder_value != 0 && remainder_value < DUST_ALLOWANCE_VALUE {
+    if remainder_value != 0 && remainder_value < MIN_DUST_ALLOWANCE_VALUE {
         return Err(crate::Error::LeavingDustError(format!(
             "Transaction would leave dust behind ({}i)",
             remainder_value

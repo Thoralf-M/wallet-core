@@ -1,6 +1,7 @@
 use crate::account::{
+    constants::PARALLEL_REQUESTS_AMOUNT,
     handle::AccountHandle,
-    operations::syncing::{SyncOptions, SYNC_CHUNK_SIZE},
+    operations::syncing::SyncOptions,
     types::address::{AccountAddress, AddressWithBalance},
 };
 #[cfg(feature = "events")]
@@ -37,7 +38,7 @@ pub(crate) async fn get_addresses_with_balance(
     log::debug!("[SYNC] sync balance for {} addresses", address_before_syncing.len());
     let mut addresses_with_balance = Vec::new();
     for addresses_chunk in address_before_syncing
-        .chunks(SYNC_CHUNK_SIZE)
+        .chunks(PARALLEL_REQUESTS_AMOUNT)
         .map(|x: &[AccountAddress]| x.to_vec())
         .into_iter()
     {
@@ -104,7 +105,7 @@ pub(crate) async fn get_address_output_ids(
     let mut addresses_with_outputs = Vec::new();
     // We split the addresses into chunks so we don't get timeouts if we have thousands
     for addresses_chunk in &mut addresses_with_balance
-        .chunks(SYNC_CHUNK_SIZE)
+        .chunks(PARALLEL_REQUESTS_AMOUNT)
         .map(|x: &[AddressWithBalance]| x.to_vec())
     {
         let mut tasks = Vec::new();
