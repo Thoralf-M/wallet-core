@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["address_generation","The module for the address generation"],["input_selection","The module for the input selection"],["output_consolidation","The module for the output consolidation"],["syncing","The module for synchronization of an account"],["transfer","The module for value transfers"]]});

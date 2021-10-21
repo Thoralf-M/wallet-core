@@ -17,6 +17,7 @@ use std::{
     time::Duration,
 };
 
+/// The AccountBuilder
 pub struct AccountBuilder {
     client_options: Option<ClientOptions>,
     alias: Option<String>,

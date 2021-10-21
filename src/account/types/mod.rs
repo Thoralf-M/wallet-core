@@ -1,4 +1,6 @@
+/// Address types used in the account
 pub(crate) mod address;
+/// Custom de/serialization for [`address::AddressWrapper`]
 pub(crate) mod address_serde;
 use crate::account::constants::ACCOUNT_ID_PREFIX;
 use address::{parse_bech32_address, AddressWrapper};
@@ -13,12 +15,15 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use std::str::FromStr;
 
+/// The balance of an account, returned from [`crate::account::handle::AccountHandle::sync()`] and
+/// [`crate::account::handle::AccountHandle::balance()`].
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AccountBalance {
     pub(crate) total: u64,
     pub(crate) available: u64,
 }
 
+/// An output with metadata
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OutputData {
     /// The output id
@@ -43,6 +48,7 @@ pub struct OutputData {
     pub remainder: bool,
 }
 
+/// A transaction with metadata
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transaction {
     pub payload: TransactionPayload,
@@ -57,6 +63,7 @@ pub struct Transaction {
     pub internal: bool,
 }
 
+/// Possible InclusionStates for transactions
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum InclusionState {
     Pending,
@@ -64,7 +71,7 @@ pub enum InclusionState {
     Conflicting,
 }
 
-/// The address output kind.
+/// The output kind enum.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum OutputKind {
     /// SignatureLockedSingle output.

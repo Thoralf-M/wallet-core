@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["select_inputs","Selects inputs for a transaction"]]});

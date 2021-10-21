@@ -1,7 +1,12 @@
+/// The module with the AccountBuilder.
 pub(crate) mod builder;
+/// Constants used for the account and account operations.
 pub(crate) mod constants;
+/// A thread guard over an account, all account methods are called from here.
 pub(crate) mod handle;
+/// The account operations like address generation, syncing and creating transfers.
 pub(crate) mod operations;
+/// Types used in an account and returned from methods.
 pub mod types;
 pub use operations::{
     address_generation::AddressGenerationOptions,
@@ -30,7 +35,7 @@ use std::{
     time::Duration,
 };
 
-/// Account definition.
+/// An Account.
 #[derive(Debug, Getters, Setters, Serialize, Deserialize, Clone)]
 #[getset(get = "pub")]
 pub struct Account {
@@ -66,6 +71,7 @@ pub struct Account {
     account_options: AccountOptions,
 }
 
+/// Account options
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub(crate) struct AccountOptions {
     pub(crate) background_syncing_interval: Duration,

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["generate_addresses","Generate addresses and stores them in the account"]],"struct":[["AddressGenerationOptions","Options for address generation"]]});

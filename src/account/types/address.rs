@@ -23,7 +23,7 @@ pub struct AccountAddress {
     pub(crate) used: bool,
 }
 
-/// An account address.
+/// An account address with balance and output_ids.
 #[derive(Debug, Getters, Setters, Clone, Serialize, Deserialize)]
 #[getset(get = "pub")]
 pub struct AddressWithBalance {

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["sync_account","Syncs an account"],["update_account","Update account with newly synced data"]],"mod":[["addresses",""],["options",""],["outputs",""],["transactions",""]]});

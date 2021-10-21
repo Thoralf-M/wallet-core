@@ -37,3 +37,9 @@ pub enum WalletEventType {
 ## Actor (should also be a Rust feature?)
 
 We want to provide an easy interface for [Firefly](https://github.com/iotaledger/firefly/) and bindings to call the functions from the wallet without binding each function individually.
+
+## Docs
+
+With cargo watch `cargo watch -x "doc --document-private-items --no-deps --all-features"`.
+
+Build the rust docs with `cargo doc --document-private-items --no-deps --open --all-features --release` and copy the result to the docs folder with `cp target/doc/*.*  ./docs` and `cp -r target/doc/wallet_core  ./docs/wallet_core`.

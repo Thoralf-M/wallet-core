@@ -103,6 +103,12 @@ pub(crate) async fn sync_transactions(
                     transaction.message_id.replace(reattached_msg);
                     updated_transactions.push(transaction);
                 }
+            } else {
+                // transaction wasn't submitted yet, so we have to attach it new
+                log::debug!("[SYNC] attaching transaction");
+                let reattached_msg = submit_transaction_payload(account_handle, transaction.payload.clone()).await?;
+                transaction.message_id.replace(reattached_msg);
+                updated_transactions.push(transaction);
             }
         }
     }

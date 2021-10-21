@@ -3,6 +3,7 @@ use crate::account::types::{address::AccountAddress, OutputKind};
 use iota_client::bee_message::{output::OutputId, payload::indexation::IndexationPayload};
 use serde::{Deserialize, Serialize};
 
+/// Options for value transfers
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TransferOptions {
     #[serde(rename = "remainderValueStrategy", default)]
@@ -17,6 +18,8 @@ pub struct TransferOptions {
 }
 
 // clearer to have it here in transfer.rs or also mvoe it into the types folder?
+
+/// An output for a value transfer
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransferOutput {
     pub address: String,

@@ -26,12 +26,14 @@ use std::{ops::Deref, str::FromStr, sync::Arc};
 #[derive(Debug, Clone)]
 pub struct AccountHandle {
     account: Arc<RwLock<Account>>,
-    // mutex to prevent multipls sync calls at the same time, returnning the last synced result if the time was < 1?
-    // second ago the u64 is a timestamp
+    // mutex to prevent multiple sync calls at the same or almost the same time, the u128 is a timestamp
+    // if the last synced time was < `MIN_SYNC_INTERVAL` second ago, we don't sync, but only calculate the balance
+    // again, because sending transactions can change that
     pub(crate) last_synced: Arc<Mutex<u128>>,
 }
 
 impl AccountHandle {
+    /// Create a new AccountHandle with an Account
     pub(crate) fn new(account: Account) -> Self {
         Self {
             account: Arc::new(RwLock::new(account)),
@@ -39,7 +41,8 @@ impl AccountHandle {
         }
     }
 
-    /// Sync the account
+    /// Syncs the account by fetching new information from the nodes. Will also retry pending transactions and
+    /// consolidate outputs if necessary.
     pub async fn sync(&self, options: Option<SyncOptions>) -> crate::Result<AccountBalance> {
         sync_account(self, &options.unwrap_or_default()).await
     }
@@ -49,7 +52,29 @@ impl AccountHandle {
         crate::account::operations::output_consolidation::consolidate_outputs(self).await
     }
 
-    /// Send a transaction
+    /// Send a transaction, if sending a message fails, the function will return None for the message_id, but the wallet
+    /// will retry sending the transaction during syncing.
+    /// ```ignore
+    /// let outputs = vec![TransferOutput {
+    ///     address: "atoi1qpszqzadsym6wpppd6z037dvlejmjuke7s24hm95s9fg9vpua7vluehe53e".to_string(),
+    ///     amount: 1_000_000,
+    ///     output_kind: None,
+    /// }];
+    ///
+    /// let res = account_handle
+    ///     .send(
+    ///         outputs,
+    ///         Some(TransferOptions {
+    ///             remainder_value_strategy: RemainderValueStrategy::ReuseAddress,
+    ///             ..Default::default()
+    ///         }),
+    ///     )
+    ///     .await?;
+    /// println!("Transaction created: {}", res.1);
+    /// if let Some(message_id) = res.0 {
+    ///     println!("Message sent: {}", message_id);
+    /// }
+    /// ```
     pub async fn send(
         &self,
         outputs: Vec<TransferOutput>,
@@ -77,12 +102,25 @@ impl AccountHandle {
         send_transfer(self, outputs, options).await
     }
 
-    /// Reattaches or promotes a message to get it confirmed
+    // /// Reattaches or promotes a message to get it confirmed
     // pub async fn retry(message_id: MessageId, sync: bool) -> crate::Result<MessageId> {
     //     Ok(MessageId::from_str("")?)
     // }
 
     /// Generate addresses
+    /// ```ignore
+    /// let public_addresses = account_handle.generate_addresses(2, None).await?;
+    /// // internal addresses are used for remainder outputs, if the RemainderValueStrategy for transfers is set to ChangeAddress
+    /// let internal_addresses = account_handle
+    ///     .generate_addresses(
+    ///         1,
+    ///         Some(AddressGenerationOptions {
+    ///             internal: true,
+    ///             ..Default::default()
+    ///         }),
+    ///     )
+    ///     .await?;
+    /// ```
     pub async fn generate_addresses(
         &self,
         amount: usize,

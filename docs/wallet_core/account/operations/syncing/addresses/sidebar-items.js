@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get_address_output_ids","Get the current output ids for provided addresses"],["get_addresses_with_balance","Get the balance and return only addresses with a positive balance"]]});

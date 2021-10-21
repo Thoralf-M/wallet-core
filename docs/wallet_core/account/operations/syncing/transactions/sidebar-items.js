@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["sync_transactions","Sync transactions and reattach them if unconfirmed. Returns the transaction with updated metadata and spent output ids that don’t need to be locked anymore"],["updated_transaction_and_outputs",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["consolidate_outputs","Consolidates outputs from an account by sending them to the same address again if the output amount is >= the output_consolidation_threshold"]]});

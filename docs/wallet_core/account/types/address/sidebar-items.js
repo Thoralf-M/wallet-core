@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["parse_bech32_address","Parses a bech32 address string."]],"struct":[["AccountAddress","An account address."],["AddressWithBalance","An account address with balance and output_ids."],["AddressWrapper","An address and its network type."]]});

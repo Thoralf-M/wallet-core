@@ -15,6 +15,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
+/// Options for address generation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddressGenerationOptions {
     pub internal: bool,

@@ -3,17 +3,19 @@ pub mod options;
 pub(crate) mod outputs;
 pub(crate) mod transactions;
 
-use crate::account::{
-    constants::MIN_SYNC_INTERVAL,
-    handle::AccountHandle,
-    operations::output_consolidation::consolidate_outputs,
-    types::{
-        address::{AccountAddress, AddressWithBalance},
-        InclusionState, OutputData, Transaction,
+use crate::{
+    account::{
+        constants::MIN_SYNC_INTERVAL,
+        handle::AccountHandle,
+        operations::output_consolidation::consolidate_outputs,
+        types::{
+            address::{AccountAddress, AddressWithBalance},
+            InclusionState, OutputData, Transaction,
+        },
+        AccountBalance,
     },
-    AccountBalance,
+    signing::SignerType,
 };
-use crate::signing::SignerType;
 pub use options::SyncOptions;
 
 use iota_client::bee_message::output::OutputId;

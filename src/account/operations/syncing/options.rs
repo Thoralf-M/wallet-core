@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// The synchronization options
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SyncOptions {
     #[serde(

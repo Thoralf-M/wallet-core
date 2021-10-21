@@ -9,6 +9,7 @@ use tokio::sync::RwLock;
 use std::path::PathBuf;
 use std::sync::{atomic::AtomicBool, Arc};
 
+/// Builder for the account manager.
 pub struct AccountManagerBuilder {
     #[cfg(feature = "storage")]
     storage_options: Option<StorageOptions>,
@@ -40,6 +41,7 @@ impl AccountManagerBuilder {
     pub fn new() -> Self {
         Default::default()
     }
+    /// Builds the account manager
     pub async fn finish(self) -> crate::Result<AccountManager> {
         Ok(AccountManager {
             accounts: Arc::new(RwLock::new(Vec::new())),

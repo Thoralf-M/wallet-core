@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["create_transaction","Function to build the transaction essence"]]});

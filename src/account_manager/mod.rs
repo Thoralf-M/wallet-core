@@ -19,6 +19,8 @@ use tokio::sync::RwLock;
 
 use std::sync::{atomic::AtomicBool, Arc};
 
+/// The account manager, used to create and get accounts. One account manager can hold many accounts, but they should
+/// all share the same signer type with the same seed/mnemonic.
 pub struct AccountManager {
     // should we use a hashmap instead of a vec like in wallet.rs?
     pub(crate) accounts: Arc<RwLock<Vec<AccountHandle>>>,
@@ -132,7 +134,7 @@ impl AccountManager {
         Ok(())
     }
 
-    // Sets the mnemonic for the signer
+    /// Sets the mnemonic for the signer
     pub async fn store_mnemonic(&self, signer_type: SignerType, mnemonic: Option<String>) -> crate::Result<()> {
         let signer = crate::signing::get_signer(&signer_type).await;
         let mut signer = signer.lock().await;

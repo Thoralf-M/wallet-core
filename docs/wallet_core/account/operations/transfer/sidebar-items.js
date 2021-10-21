@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["send_transfer","Function to create a transfer to provided outputs, the options can define the RemainderValueStrategy or custom inputs."],["unlock_inputs",""]],"mod":[["create_transaction",""],["options",""],["sign_transaction",""],["submit_transaction",""]],"struct":[["Remainder",""]]});

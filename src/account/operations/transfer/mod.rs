@@ -1,4 +1,5 @@
 // transfer or transaction?
+
 mod create_transaction;
 mod options;
 mod sign_transaction;
@@ -27,7 +28,8 @@ pub(crate) struct Remainder {
     amount: u64,
 }
 
-/// Function to create a transfer
+/// Function to create a transfer to provided outputs, the options can define the RemainderValueStrategy or custom
+/// inputs.
 pub async fn send_transfer(
     account_handle: &AccountHandle,
     outputs: Vec<TransferOutput>,
