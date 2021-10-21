@@ -219,6 +219,7 @@ impl ClientOptionsBuilder {
         mut self,
         node: &str,
         jwt: Option<&str>,
+        //todo: change it to a vec or something else so it works for other languages
         basic_auth_name_pwd: Option<(&str, &str)>,
     ) -> crate::Result<Self> {
         self.nodes.push(Node {
