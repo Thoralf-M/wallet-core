@@ -45,11 +45,6 @@ impl AccountBuilder {
         self.alias.replace(alias);
         self
     }
-    /// Set the client options (should this only be available via the AccountManager?)
-    pub fn with_client_options(mut self, options: ClientOptions) -> Self {
-        self.client_options.replace(options);
-        self
-    }
     /// Set the signer type
     pub fn with_signer_type(mut self, signer_type: SignerType) -> Self {
         self.signer_type = signer_type;
@@ -77,12 +72,6 @@ impl AccountBuilder {
             unspent_outputs: HashMap::new(),
             transactions: HashMap::new(),
             pending_transactions: HashSet::new(),
-            // default options for testing
-            client_options: self.client_options.clone().unwrap_or(
-                ClientOptionsBuilder::new()
-                    .with_primary_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
-                    .finish()?,
-            ),
             // sync interval, output consolidation
             account_options: AccountOptions {
                 background_syncing_interval: Duration::from_secs(7),

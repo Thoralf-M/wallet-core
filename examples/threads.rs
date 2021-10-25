@@ -23,7 +23,21 @@ async fn main() -> Result<()> {
         .level_filter(LevelFilter::Debug);
     let config = LoggerConfig::build().with_output(output_config).finish();
     logger_init(config).unwrap();
-    let manager = AccountManager::builder().finish().await?;
+
+    let client_options = ClientOptionsBuilder::new()
+        .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
+        .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
+        .with_node("https://api.thin-hornet-1.h.chrysalis-devnet.iota.cafe")?
+        // .with_node("https://chrysalis-nodes.iota.org/")?
+        // .with_node("http://localhost:14265")?
+        .with_node_sync_disabled()
+        .finish()
+        .unwrap();
+
+    let manager = AccountManager::builder()
+        .with_client_options(client_options)
+        .finish()
+        .await?;
 
     // Get account or create a new one
     let account_alias = "thread_account";
@@ -33,17 +47,8 @@ async fn main() -> Result<()> {
         Ok(account) => account,
         _ => {
             // first we'll create an example account and store it
-            let client_options = ClientOptionsBuilder::new()
-                // .with_node("http://localhost:14265")?
-                .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
-                .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
-                .with_node("https://api.thin-hornet-1.h.chrysalis-devnet.iota.cafe")?
-                .with_node_sync_disabled()
-                .finish()
-                .unwrap();
             manager
                 .create_account()
-                .with_client_options(client_options)
                 .with_alias(account_alias.to_string())
                 .finish()
                 .await?

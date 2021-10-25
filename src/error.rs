@@ -236,6 +236,9 @@ pub enum Error {
     /// Custom input error
     #[error("custom input error {0}")]
     CustomInputError(String),
+    /// Client not set error
+    #[error("client not set")]
+    ClientNotSet,
 }
 
 // impl Drop for Error {
@@ -378,6 +381,7 @@ impl serde::Serialize for Error {
             Self::MnemonicNotSet => serialize_variant(self, serializer, "MnemonicNotSet"),
             Self::MissingUnlockBlock => serialize_variant(self, serializer, "MissingUnlockBlock"),
             Self::CustomInputError(_) => serialize_variant(self, serializer, "CustomInputError"),
+            Self::ClientNotSet => serialize_variant(self, serializer, "ClientNotSet"),
         }
     }
 }

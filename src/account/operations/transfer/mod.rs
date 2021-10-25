@@ -74,16 +74,23 @@ pub async fn send_transfer(
                 return Err(err);
             }
         };
-    let transaction_id = transaction_payload.id();
+
+    let message_id =
+        match submit_transaction::submit_transaction_payload(account_handle, transaction_payload.clone()).await {
+            Ok(message_id) => Some(message_id),
+            Err(_) => None,
+        };
+
     // store transaction payload to account (with db feature also store the account to the db) here before sending
+    let client = crate::client::get_client().await?;
+    let network_id = client.get_network_id().await?;
+    let transaction_id = transaction_payload.id();
     let mut account = account_handle.write().await;
-    let client_guard = crate::client::get_client(&account.client_options).await?;
-    let network_id = client_guard.read().await.get_network_id().await?;
     account.transactions.insert(
         transaction_id,
         Transaction {
-            payload: transaction_payload.clone(),
-            message_id: None,
+            payload: transaction_payload,
+            message_id,
             network_id,
             timestamp: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -95,11 +102,7 @@ pub async fn send_transfer(
         },
     );
     account.pending_transactions.insert(transaction_id);
-    drop(account);
-    match submit_transaction::submit_transaction_payload(account_handle, transaction_payload).await {
-        Ok(message_id) => Ok((Some(message_id), transaction_id)),
-        Err(_) => Ok((None, transaction_id)),
-    }
+    Ok((message_id, transaction_id))
 }
 
 // unlock outputs

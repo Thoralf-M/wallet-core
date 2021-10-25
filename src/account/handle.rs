@@ -194,9 +194,13 @@ impl AccountHandle {
         // for `available` get locked_outputs, sum outputs balance and substract from total_balance
         log::debug!("[BALANCE] locked outputs: {:#?}", account.locked_outputs);
         let mut locked_balance = 0;
+        let client = crate::client::get_client().await?;
+        let network_id = client.get_network_id().await?;
         for locked_output in &account.locked_outputs {
             if let Some(output) = account.unspent_outputs.get(locked_output) {
-                locked_balance += output.amount;
+                if output.network_id == network_id {
+                    locked_balance += output.amount;
+                }
             }
         }
         log::debug!(
@@ -210,15 +214,12 @@ impl AccountHandle {
         })
     }
 
-    // Should only be called from the AccountManager so all accounts use the same options
-    pub(crate) async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
-        log::debug!("[SET_CLIENT_OPTIONS]");
+    // Should only be called from the AccountManager so all accounts are on the same state
+    pub(crate) async fn update_account_with_new_client(&self) -> crate::Result<()> {
+        log::debug!("[UPDATE ACCOUNT WITH NEW CLIENT]");
+        let client = crate::client::get_client().await?;
         let mut account = self.account.write().await;
-        account.client_options = options;
-        let client_guard = crate::client::get_client(&account.client_options).await?;
-        let client = client_guard.read().await;
         let bech32_hrp = client.get_bech32_hrp().await?;
-        drop(client);
         for address in &mut account.addresses_with_balance {
             address.address.bech32_hrp = bech32_hrp.clone();
         }

@@ -41,12 +41,17 @@ impl AccountManagerBuilder {
     pub fn new() -> Self {
         Default::default()
     }
+    pub fn with_client_options(mut self, options: ClientOptions) -> Self {
+        self.client_options = options;
+        self
+    }
     /// Builds the account manager
     pub async fn finish(self) -> crate::Result<AccountManager> {
+        crate::client::set_client(self.client_options.clone()).await?;
         Ok(AccountManager {
             accounts: Arc::new(RwLock::new(Vec::new())),
             background_syncing_enabled: Arc::new(AtomicBool::new(true)),
-            version: 1,
+            client_options: Arc::new(RwLock::new(self.client_options)),
         })
     }
 }

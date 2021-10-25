@@ -25,7 +25,7 @@ pub struct AccountManager {
     // should we use a hashmap instead of a vec like in wallet.rs?
     pub(crate) accounts: Arc<RwLock<Vec<AccountHandle>>>,
     pub(crate) background_syncing_enabled: Arc<AtomicBool>,
-    pub(crate) version: u16,
+    pub(crate) client_options: Arc<RwLock<ClientOptions>>,
 }
 
 impl AccountManager {
@@ -95,11 +95,15 @@ impl AccountManager {
         Ok(vec![])
     }
 
-    /// Sets the client options for all accounts
+    /// Sets the client options for all accounts, syncs them and sets the new bech32_hrp
     pub async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
+        log::debug!("[SET_CLIENT_OPTIONS]");
+        let mut client_options = self.client_options.write().await;
+        *client_options = options.clone();
+        crate::client::set_client(options).await?;
         let accounts = self.accounts.read().await;
         for account in accounts.iter() {
-            account.set_client_options(options.clone()).await?;
+            account.update_account_with_new_client().await?;
         }
         Ok(())
     }

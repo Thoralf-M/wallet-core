@@ -219,7 +219,7 @@ impl ClientOptionsBuilder {
         mut self,
         node: &str,
         jwt: Option<&str>,
-        //todo: change it to a vec or something else so it works for other languages
+        // todo: change it to a vec or something else so it works for other languages
         basic_auth_name_pwd: Option<(&str, &str)>,
     ) -> crate::Result<Self> {
         self.nodes.push(Node {
@@ -497,18 +497,9 @@ mod tests {
                 .unwrap(),
         ];
 
-        // assert that each different client_options create a new client instance
         for case in &test_cases {
-            let len = crate::client::instances().lock().await.len();
-            crate::client::get_client(case).await.unwrap();
-            assert_eq!(crate::client::instances().lock().await.len() - len, 1);
-        }
-
-        // assert that subsequent calls with options already initialized doesn't create new clients
-        let len = crate::client::instances().lock().await.len();
-        for case in &test_cases {
-            crate::client::get_client(case).await.unwrap();
-            assert_eq!(crate::client::instances().lock().await.len(), len);
+            crate::client::set_client(case.clone()).await.unwrap();
+            crate::client::get_client().await.unwrap();
         }
     }
 }

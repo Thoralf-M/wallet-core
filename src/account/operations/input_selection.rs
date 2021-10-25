@@ -61,8 +61,8 @@ pub(crate) async fn select_inputs(
         return Ok(inputs);
     }
 
-    let client_guard = crate::client::get_client(&account.client_options).await?;
-    let network_id = client_guard.read().await.get_network_id().await?;
+    let client = crate::client::get_client().await?;
+    let network_id = client.get_network_id().await?;
 
     let mut signature_locked_outputs = Vec::new();
     let mut dust_allowance_outputs = Vec::new();

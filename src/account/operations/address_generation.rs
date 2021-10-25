@@ -60,8 +60,8 @@ pub async fn generate_addresses(
             // the client Doesn't work for offline creating, should we use the network from the
             // GenerateAddressMetadata instead to use `iota` or `atoi`?
             None => {
-                let client_guard = client::get_client(&account.client_options).await?;
-                let bech32_hrp = client_guard.read().await.get_bech32_hrp().await?;
+                let client = client::get_client().await?;
+                let bech32_hrp = client.get_bech32_hrp().await?;
                 bech32_hrp
             }
         }

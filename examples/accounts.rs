@@ -19,14 +19,6 @@ async fn main() -> Result<()> {
     let config = LoggerConfig::build().with_output(output_config).finish();
     logger_init(config).unwrap();
 
-    let manager = AccountManager::builder().finish().await?;
-    // manager.set_stronghold_password("password").await?;
-
-    // Get account or create a new one
-    let account_alias = "first_account";
-    let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
-    manager.store_mnemonic(SignerType::Mnemonic, Some(mnemonic)).await?;
-
     let client_options = ClientOptionsBuilder::new()
         .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
         .with_node("https://api.thin-hornet-0.h.chrysalis-devnet.iota.cafe")?
@@ -37,6 +29,17 @@ async fn main() -> Result<()> {
         .finish()
         .unwrap();
 
+    let manager = AccountManager::builder()
+        .with_client_options(client_options)
+        .finish()
+        .await?;
+    // manager.set_stronghold_password("password").await?;
+
+    // Get account or create a new one
+    let account_alias = "first_account";
+    let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
+    manager.store_mnemonic(SignerType::Mnemonic, Some(mnemonic)).await?;
+
     // create first account
     let _first_account = match manager.get_account(account_alias).await {
         Ok(account) => account,
@@ -44,7 +47,6 @@ async fn main() -> Result<()> {
             // first we'll create an example account and store it
             manager
                 .create_account()
-                .with_client_options(client_options.clone())
                 .with_alias(account_alias.to_string())
                 .finish()
                 .await?
@@ -58,7 +60,6 @@ async fn main() -> Result<()> {
         _ => {
             manager
                 .create_account()
-                .with_client_options(client_options)
                 .with_alias(account_alias.to_string())
                 .finish()
                 .await?

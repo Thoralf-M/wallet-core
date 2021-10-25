@@ -14,7 +14,10 @@ use iota_client::{
     bee_rest_api::types::dtos::LedgerInclusionStateDto,
 };
 
-use std::str::FromStr;
+use std::{
+    str::FromStr,
+    time::{Instant, SystemTime, UNIX_EPOCH},
+};
 
 // ignore outputs and transactions from other networks
 // check if outputs are unspent, rebroadcast, reattach...
@@ -30,15 +33,15 @@ pub(crate) async fn sync_transactions(
 ) -> crate::Result<(Vec<Transaction>, Vec<OutputId>)> {
     log::debug!("[SYNC] sync pending transactions");
     let account = account_handle.read().await;
-    let client_guard = crate::client::get_client(&account.client_options).await?;
-    let client = client_guard.read().await;
+    let client = crate::client::get_client().await?;
     let network_id = client.get_network_id().await?;
 
     let mut updated_transactions = Vec::new();
     let mut spent_output_ids = Vec::new();
+    let mut transactions_to_reattach = Vec::new();
 
     for transaction_id in &account.pending_transactions {
-        let mut transaction = account
+        let transaction = account
             .transactions
             .get(transaction_id)
             // panic during development to easier detect if something is wrong, should be handled different later
@@ -97,20 +100,27 @@ pub(crate) async fn sync_transactions(
                         LedgerInclusionStateDto::NoTransaction => {}
                     }
                 } else {
-                    log::debug!("[SYNC] reattach transaction");
-                    let reattached_msg =
-                        submit_transaction_payload(account_handle, transaction.payload.clone()).await?;
-                    transaction.message_id.replace(reattached_msg);
-                    updated_transactions.push(transaction);
+                    let time_now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Time went backwards")
+                        .as_millis();
+                    // Reattach if older than 30 seconds
+                    if transaction.timestamp + 30000 < time_now {
+                        transactions_to_reattach.push(transaction);
+                    }
                 }
             } else {
-                // transaction wasn't submitted yet, so we have to attach it new
-                log::debug!("[SYNC] attaching transaction");
-                let reattached_msg = submit_transaction_payload(account_handle, transaction.payload.clone()).await?;
-                transaction.message_id.replace(reattached_msg);
-                updated_transactions.push(transaction);
+                // transaction wasn't submitted yet, so we have to send it again
+                transactions_to_reattach.push(transaction);
             }
         }
+    }
+    drop(account);
+    for mut transaction in transactions_to_reattach {
+        log::debug!("[SYNC] reattach transaction");
+        let reattached_msg = submit_transaction_payload(account_handle, transaction.payload.clone()).await?;
+        transaction.message_id.replace(reattached_msg);
+        updated_transactions.push(transaction);
     }
 
     Ok((updated_transactions, spent_output_ids))

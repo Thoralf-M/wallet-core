@@ -65,7 +65,6 @@ pub struct Account {
     transactions: HashMap<TransactionId, types::Transaction>,
     // Maybe pending transactions even additionally separated?
     pending_transactions: HashSet<TransactionId>,
-    client_options: ClientOptions,
     // sync interval, output consolidation
     #[getset(get = "pub(crate)")]
     account_options: AccountOptions,

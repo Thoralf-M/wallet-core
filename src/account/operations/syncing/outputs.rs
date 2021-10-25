@@ -35,9 +35,9 @@ pub(crate) async fn output_response_to_output_data(
     log::debug!("[SYNC] convert output_responses");
     // store outputs with network_id
     let account = account_handle.read().await;
-    let client_guard = crate::client::get_client(&account.client_options).await?;
-    let network_id = client_guard.read().await.get_network_id().await?;
-    let bech32_hrp = client_guard.read().await.get_bech32_hrp().await?;
+    let client = crate::client::get_client().await?;
+    let network_id = client.get_network_id().await?;
+    let bech32_hrp = client.get_bech32_hrp().await?;
     output_responses
         .into_iter()
         .map(|output| {
@@ -80,7 +80,7 @@ pub(crate) async fn get_outputs(
     let get_outputs_sync_start_time = Instant::now();
     let account = account_handle.read().await;
 
-    let client_guard = crate::client::get_client(&account.client_options).await?;
+    let client = crate::client::get_client().await?;
     drop(account);
 
     let mut found_outputs = Vec::new();
@@ -92,10 +92,10 @@ pub(crate) async fn get_outputs(
     {
         let mut tasks = Vec::new();
         for output_id in output_ids_chunk {
-            let client_guard = client_guard.clone();
+            let client = client.clone();
             tasks.push(async move {
                 tokio::spawn(async move {
-                    let client = client_guard.read().await;
+                    let client = client;
                     let output = client.get_output(&UtxoInput::from(output_id)).await?;
                     crate::Result::Ok(output)
                 })
