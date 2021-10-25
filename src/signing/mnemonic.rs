@@ -3,7 +3,6 @@
 
 use crate::account::Account;
 
-use core::convert::TryInto;
 use crypto::{
     hashes::{blake2b::Blake2b256, Digest},
     keys::{
