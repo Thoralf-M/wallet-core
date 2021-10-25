@@ -73,8 +73,9 @@ async fn main() -> Result<()> {
         )
         .await?;
     println!(
-        "Message sent: https://explorer.iota.org/devnet/message/{}",
-        res.0.expect("No message created")
+        "Transaction: {} Message sent: https://explorer.iota.org/devnet/message/{}",
+        res.transaction_id,
+        res.message_id.expect("No message created yet")
     );
 
     Ok(())

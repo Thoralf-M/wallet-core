@@ -1,7 +1,5 @@
 /// The module for the address generation
 pub(crate) mod address_generation;
-/// The module for the input selection
-pub(crate) mod input_selection;
 /// The module for the output consolidation
 pub(crate) mod output_consolidation;
 /// The module for synchronization of an account

@@ -1,16 +1,16 @@
 // transfer or transaction?
 
 mod create_transaction;
+mod input_selection;
 mod options;
 mod sign_transaction;
 pub(crate) mod submit_transaction;
 
 use crate::account::{
     handle::AccountHandle,
-    operations::input_selection::select_inputs,
     types::{address::AccountAddress, InclusionState, OutputData, Transaction},
 };
-pub use options::{RemainderValueStrategy, TransferOptions, TransferOutput};
+use input_selection::select_inputs;
 
 use iota_client::bee_message::{
     address::Address,
@@ -19,8 +19,15 @@ use iota_client::bee_message::{
     payload::transaction::{TransactionId, TransactionPayload},
     MessageId,
 };
+pub use options::{RemainderValueStrategy, TransferOptions, TransferOutput};
 
 use std::time::{SystemTime, UNIX_EPOCH};
+
+/// The result of a transfer, message_id is an option because submitting the transaction could fail
+pub struct TransferResult {
+    pub transaction_id: TransactionId,
+    pub message_id: Option<MessageId>,
+}
 
 // Data for signing metadata (used for ledger signer)
 pub(crate) struct Remainder {
@@ -34,7 +41,7 @@ pub async fn send_transfer(
     account_handle: &AccountHandle,
     outputs: Vec<TransferOutput>,
     options: Option<TransferOptions>,
-) -> crate::Result<(Option<MessageId>, TransactionId)> {
+) -> crate::Result<TransferResult> {
     log::debug!("[TRANSFER] send_transfer");
     let amount = outputs.iter().map(|x| x.amount).sum();
     // validate outputs amount
@@ -102,7 +109,10 @@ pub async fn send_transfer(
         },
     );
     account.pending_transactions.insert(transaction_id);
-    Ok((message_id, transaction_id))
+    Ok(TransferResult {
+        transaction_id,
+        message_id,
+    })
 }
 
 // unlock outputs

@@ -1,6 +1,6 @@
 use crate::account::{
     handle::AccountHandle,
-    operations::transfer::send_transfer,
+    operations::transfer::{send_transfer, TransferResult},
     types::{address::AddressWithBalance, OutputData, OutputKind},
     TransferOptions, TransferOutput,
 };
@@ -19,9 +19,7 @@ use iota_client::bee_message::{
 
 /// Consolidates outputs from an account by sending them to the same address again if the output amount is >= the
 /// output_consolidation_threshold
-pub(crate) async fn consolidate_outputs(
-    account_handle: &AccountHandle,
-) -> crate::Result<Vec<(Option<MessageId>, TransactionId)>> {
+pub(crate) async fn consolidate_outputs(account_handle: &AccountHandle) -> crate::Result<Vec<TransferResult>> {
     let account = account_handle.read().await;
     let output_consolidation_threshold = account.account_options.output_consolidation_threshold;
     let addresses_that_need_consolidation: Vec<&AddressWithBalance> = account
@@ -71,6 +69,7 @@ pub(crate) async fn consolidate_outputs(
         for outputs in outputs_on_one_address.chunks(output_consolidation_threshold) {
             let output_sum = outputs.iter().map(|o| o.amount).sum();
             let consolidation_output = vec![TransferOutput {
+                // use the address from the input for the output
                 address: outputs[0].address.to_bech32(&bech32_hrp),
                 amount: output_sum,
                 output_kind: None,
@@ -89,8 +88,8 @@ pub(crate) async fn consolidate_outputs(
                 Ok(res) => {
                     log::debug!(
                         "[OUTPUT_CONSOLIDATION] Consolidation transaction sent: msg_id: {:?} tx_id: {:?}",
-                        res.0,
-                        res.1
+                        res.message_id,
+                        res.transaction_id
                     );
                     consolidation_results.push(res);
                 }

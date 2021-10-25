@@ -88,7 +88,7 @@ async fn main() -> Result<()> {
                     println!(
                         "Message from thread {} sent: https://explorer.iota.org/devnet/message/{}",
                         n,
-                        res.0.expect("No message created")
+                        res.message_id.expect("No message created yet")
                     );
                     wallet_core::Result::Ok(n)
                 })

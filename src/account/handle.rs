@@ -6,7 +6,7 @@ use crate::{
             address_generation,
             address_generation::AddressGenerationOptions,
             syncing::{sync_account, SyncOptions},
-            transfer::{send_transfer, TransferOptions, TransferOutput},
+            transfer::{send_transfer, TransferOptions, TransferOutput, TransferResult},
         },
         types::{
             address::{AccountAddress, AddressWithBalance},
@@ -48,7 +48,7 @@ impl AccountHandle {
     }
 
     /// Consolidate outputs from addresses that have more outputs than the consolidation threshold
-    async fn consolidate_outputs(&self) -> crate::Result<Vec<(Option<MessageId>, TransactionId)>> {
+    async fn consolidate_outputs(&self) -> crate::Result<Vec<TransferResult>> {
         crate::account::operations::output_consolidation::consolidate_outputs(self).await
     }
 
@@ -79,7 +79,7 @@ impl AccountHandle {
         &self,
         outputs: Vec<TransferOutput>,
         options: Option<TransferOptions>,
-    ) -> crate::Result<(Option<MessageId>, TransactionId)> {
+    ) -> crate::Result<TransferResult> {
         // sync account before sending a transaction
         #[cfg(feature = "events")]
         {
@@ -186,12 +186,12 @@ impl AccountHandle {
         Ok(transactions)
     }
 
-    /// Get the total and available blance of an account
+    /// Get the total and available balance of an account
     pub async fn balance(&self) -> crate::Result<AccountBalance> {
         log::debug!("[BALANCE] get balance");
         let account = self.account.read().await;
         let total_balance: u64 = account.addresses_with_balance.iter().map(|a| a.balance()).sum();
-        // for `available` get locked_outputs, sum outputs balance and substract from total_balance
+        // for `available` get locked_outputs, sum outputs balance and subtract from total_balance
         log::debug!("[BALANCE] locked outputs: {:#?}", account.locked_outputs);
         let mut locked_balance = 0;
         let client = crate::client::get_client().await?;

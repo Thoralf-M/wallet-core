@@ -14,7 +14,7 @@ use iota_client::bee_message::{
     output::OutputId,
 };
 
-/// Selects inputs for a transaction
+/// Selects inputs for a transaction and locks them in the account, so they don't get used again
 pub(crate) async fn select_inputs(
     account_handle: &AccountHandle,
     amount_to_send: u64,

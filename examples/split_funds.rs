@@ -96,7 +96,7 @@ async fn main() -> Result<()> {
         {
             Ok(res) => println!(
                 "Message sent: https://explorer.iota.org/devnet/message/{}",
-                res.0.expect("No message created")
+                res.message_id.expect("No message created yet")
             ),
             Err(e) => println!("{}", e),
         }
