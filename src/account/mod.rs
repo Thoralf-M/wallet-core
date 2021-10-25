@@ -18,16 +18,11 @@ use crate::{
         address::{AccountAddress, AddressWithBalance},
         AccountBalance, OutputData,
     },
-    client::options::ClientOptions,
     signing::SignerType,
 };
 
 use getset::{Getters, Setters};
-use iota_client::bee_message::{
-    address::Address,
-    output::OutputId,
-    payload::transaction::{TransactionId, TransactionPayload},
-};
+use iota_client::bee_message::{output::OutputId, payload::transaction::TransactionId};
 use serde::{Deserialize, Serialize};
 
 use std::{

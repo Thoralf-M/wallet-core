@@ -1,10 +1,7 @@
 pub(crate) mod builder;
 
 #[cfg(feature = "events")]
-use crate::events::{
-    types::{Event, WalletEvent, WalletEventType},
-    EventEmitter,
-};
+use crate::events::types::{Event, WalletEventType};
 use crate::{
     account::{
         builder::AccountBuilder, handle::AccountHandle, operations::syncing::SyncOptions, types::AccountIdentifier,

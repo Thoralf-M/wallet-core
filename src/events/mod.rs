@@ -1,11 +1,11 @@
 pub mod types;
 
-use types::{Event, TransferProgressEvent, WalletEvent, WalletEventType};
+use types::{Event, WalletEvent, WalletEventType};
 
 use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
 
-use std::{collections::HashMap, hash::Hash, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 type EventEmitterWrapper = Arc<Mutex<EventEmitter>>;
 pub(crate) static EVENT_EMITTER: Lazy<EventEmitterWrapper> = Lazy::new(Default::default);
@@ -82,7 +82,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::{
-        types::{Event, TransactionInclusionEvent, TransferProgressEvent, WalletEvent, WalletEventType},
+        types::{TransactionInclusionEvent, TransferProgressEvent, WalletEvent, WalletEventType},
         EventEmitter,
     };
     use crate::account::types::InclusionState;

@@ -1,10 +1,5 @@
 #[cfg(feature = "events")]
-use crate::events::{
-    types::{
-        AddressData, Event, PreparedTransactionData, TransactionIO, TransferProgressEvent, WalletEvent, WalletEventType,
-    },
-    EventEmitter,
-};
+use crate::events::types::{AddressData, PreparedTransactionData, TransactionIO, TransferProgressEvent, WalletEvent};
 use crate::{
     account::{
         constants::MIN_DUST_ALLOWANCE_VALUE,
@@ -14,7 +9,7 @@ use crate::{
             transfer::{Remainder, RemainderValueStrategy, TransferOptions, TransferOutput},
         },
         types::{
-            address::{AccountAddress, AddressWithBalance, AddressWrapper},
+            address::{AccountAddress, AddressWithBalance},
             OutputData, OutputKind,
         },
     },

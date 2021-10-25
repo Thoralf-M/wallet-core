@@ -13,7 +13,6 @@ use crate::account::{
 use input_selection::select_inputs;
 
 use iota_client::bee_message::{
-    address::Address,
     constants::{INPUT_OUTPUT_COUNT_MAX, INPUT_OUTPUT_COUNT_RANGE},
     output::OutputId,
     payload::transaction::{TransactionId, TransactionPayload},

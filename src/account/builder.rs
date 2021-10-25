@@ -1,15 +1,12 @@
+#[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+use crate::account::constants::DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD;
 use crate::{
-    account::{
-        constants::{DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD, DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD},
-        handle::AccountHandle,
-        Account, AccountOptions,
-    },
-    account_manager::AccountManager,
-    client::options::{ClientOptions, ClientOptionsBuilder},
+    account::{constants::DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD, handle::AccountHandle, Account, AccountOptions},
+    client::options::ClientOptions,
     signing::SignerType,
 };
 
-use tokio::sync::{RwLock, RwLockWriteGuard};
+use tokio::sync::RwLock;
 
 use std::{
     collections::{HashMap, HashSet},
@@ -55,8 +52,10 @@ impl AccountBuilder {
         let mut accounts = self.accounts.write().await;
         let index = accounts.len();
         let consolidation_threshold = match self.signer_type {
-            #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
-            SignerType::LedgerNano | SignerType::LedgerNanoSimulator => DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD,
+            #[cfg(feature = "ledger-nano")]
+            SignerType::LedgerNano => DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD,
+            #[cfg(feature = "ledger-nano-simulator")]
+            SignerType::LedgerNanoSimulator => DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD,
             _ => DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD,
         };
         let account = Account {

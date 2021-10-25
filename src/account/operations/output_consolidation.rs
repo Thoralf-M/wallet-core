@@ -4,18 +4,8 @@ use crate::account::{
     types::{address::AddressWithBalance, OutputData, OutputKind},
     TransferOptions, TransferOutput,
 };
-#[cfg(feature = "events")]
-use crate::events::{
-    types::{Event, TransferProgressEvent, WalletEvent, WalletEventType},
-    EventEmitter,
-};
 
-use iota_client::bee_message::{
-    constants::{INPUT_OUTPUT_COUNT_MAX, INPUT_OUTPUT_COUNT_RANGE},
-    output::OutputId,
-    payload::transaction::TransactionId,
-    MessageId,
-};
+use iota_client::bee_message::output::OutputId;
 
 /// Consolidates outputs from an account by sending them to the same address again if the output amount is >= the
 /// output_consolidation_threshold

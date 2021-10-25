@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! The IOTA Wallet Library
-#![allow(unused_imports)]
 #![allow(dead_code)]
 #![allow(unused_variables)]
 

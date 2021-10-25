@@ -1,9 +1,6 @@
 use crate::account::{handle::AccountHandle, operations::transfer::TransactionPayload};
 #[cfg(feature = "events")]
-use crate::events::{
-    types::{Event, TransferProgressEvent, WalletEvent, WalletEventType},
-    EventEmitter,
-};
+use crate::events::types::{TransferProgressEvent, WalletEvent};
 
 use iota_client::{
     api::finish_pow,

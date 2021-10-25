@@ -2,20 +2,15 @@ pub(crate) mod addresses;
 pub mod options;
 pub(crate) mod outputs;
 pub(crate) mod transactions;
-
-use crate::{
-    account::{
-        constants::MIN_SYNC_INTERVAL,
-        handle::AccountHandle,
-        operations::output_consolidation::consolidate_outputs,
-        types::{
-            address::{AccountAddress, AddressWithBalance},
-            InclusionState, OutputData, Transaction,
-        },
-        AccountBalance,
-    },
-    signing::SignerType,
+use crate::account::{
+    constants::MIN_SYNC_INTERVAL,
+    handle::AccountHandle,
+    operations::output_consolidation::consolidate_outputs,
+    types::{address::AddressWithBalance, InclusionState, OutputData, Transaction},
+    AccountBalance,
 };
+#[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+use crate::signing::SignerType;
 pub use options::SyncOptions;
 
 use iota_client::bee_message::output::OutputId;
@@ -64,9 +59,11 @@ pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions)
         account.signer_type.clone()
     };
     match signer_type {
-        #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
+        #[cfg(feature = "ledger-nano")]
         // don't automatically consoldiate with ledger accounts, because they require approval from the user
-        SignerType::LedgerNano | SignerType::LedgerNanoSimulator => {}
+        SignerType::LedgerNano => {}
+        #[cfg(feature = "ledger-nano-simulator")]
+        SignerType::LedgerNanoSimulator => {}
         _ => {
             consolidate_outputs(account_handle).await?;
         }

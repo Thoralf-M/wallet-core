@@ -5,14 +5,11 @@ use crate::account::{
     types::address::{AccountAddress, AddressWithBalance},
 };
 #[cfg(feature = "events")]
-use crate::events::{
-    types::{Event, TransferProgressEvent, WalletEvent, WalletEventType},
-    EventEmitter,
-};
+use crate::events::types::WalletEvent;
 
 use iota_client::{bee_message::output::OutputId, bee_rest_api::types::responses::OutputsAddressResponse};
 
-use std::{collections::HashSet, str::FromStr, time::Instant};
+use std::{str::FromStr, time::Instant};
 
 /// Get the balance and return only addresses with a positive balance
 pub(crate) async fn get_addresses_with_balance(

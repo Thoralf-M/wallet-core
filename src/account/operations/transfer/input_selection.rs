@@ -4,10 +4,7 @@ use crate::account::{
     types::{OutputData, OutputKind},
 };
 #[cfg(feature = "events")]
-use crate::events::{
-    types::{Event, TransferProgressEvent, WalletEvent, WalletEventType},
-    EventEmitter,
-};
+use crate::events::types::{TransferProgressEvent, WalletEvent};
 
 use iota_client::bee_message::{
     constants::{INPUT_OUTPUT_COUNT_MAX, INPUT_OUTPUT_COUNT_RANGE},

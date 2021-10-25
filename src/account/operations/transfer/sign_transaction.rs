@@ -1,8 +1,5 @@
 #[cfg(feature = "events")]
-use crate::events::{
-    types::{Event, TransferProgressEvent, WalletEvent, WalletEventType},
-    EventEmitter,
-};
+use crate::events::types::{TransferProgressEvent, WalletEvent};
 use crate::{
     account::{
         handle::AccountHandle,
@@ -11,10 +8,8 @@ use crate::{
     signing::{SignMessageMetadata, TransactionInput},
 };
 
-use crypto::hashes::{blake2b::Blake2b256, Digest};
 use iota_client::bee_message::{
-    address::{Address, Ed25519Address, ED25519_ADDRESS_LENGTH},
-    output::Output,
+    address::Address,
     payload::transaction::Essence,
     unlock::{UnlockBlock, UnlockBlocks},
 };

@@ -2,7 +2,7 @@ use getset::{Getters, Setters};
 use iota_client::bee_message::{address::Address, output::OutputId};
 use serde::{Deserialize, Serialize};
 
-use std::{collections::HashSet, hash::Hash};
+use std::hash::Hash;
 
 /// An account address.
 #[derive(Debug, Getters, Setters, Clone, Serialize, Deserialize)]

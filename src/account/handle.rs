@@ -1,26 +1,22 @@
+use crate::account::{
+    operations::{
+        address_generation,
+        address_generation::AddressGenerationOptions,
+        syncing::{sync_account, SyncOptions},
+        transfer::{send_transfer, TransferOptions, TransferOutput, TransferResult},
+    },
+    types::{
+        address::{AccountAddress, AddressWithBalance},
+        AccountBalance, OutputData, Transaction,
+    },
+    Account,
+};
 #[cfg(feature = "events")]
 use crate::events::types::{TransferProgressEvent, WalletEvent};
-use crate::{
-    account::{
-        operations::{
-            address_generation,
-            address_generation::AddressGenerationOptions,
-            syncing::{sync_account, SyncOptions},
-            transfer::{send_transfer, TransferOptions, TransferOutput, TransferResult},
-        },
-        types::{
-            address::{AccountAddress, AddressWithBalance},
-            AccountBalance, OutputData, Transaction,
-        },
-        Account,
-    },
-    client::options::ClientOptions,
-};
 
-use iota_client::bee_message::{output::OutputId, payload::transaction::TransactionId, MessageId};
 use tokio::sync::{Mutex, RwLock};
 
-use std::{ops::Deref, str::FromStr, sync::Arc};
+use std::{ops::Deref, sync::Arc};
 
 /// A thread guard over an account, so we can lock the account during operations.
 #[derive(Debug, Clone)]

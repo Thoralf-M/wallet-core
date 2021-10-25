@@ -8,7 +8,7 @@ use iota_client::{
     bee_message::{
         input::{Input, UtxoInput},
         output::OutputId,
-        payload::transaction::{Essence, TransactionId},
+        payload::transaction::Essence,
         MessageId,
     },
     bee_rest_api::types::dtos::LedgerInclusionStateDto,
@@ -16,7 +16,7 @@ use iota_client::{
 
 use std::{
     str::FromStr,
-    time::{Instant, SystemTime, UNIX_EPOCH},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 // ignore outputs and transactions from other networks

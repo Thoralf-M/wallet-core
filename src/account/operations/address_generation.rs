@@ -1,8 +1,5 @@
-#[cfg(feature = "events")]
-use crate::events::{
-    types::{AddressData, Event, TransferProgressEvent, WalletEvent, WalletEventType},
-    EventEmitter,
-};
+#[cfg(all(feature = "events", any(feature = "ledger-nano", feature = "ledger-nano-simulator")))]
+use crate::events::types::{AddressData, WalletEvent};
 use crate::{
     account::{
         handle::AccountHandle,
@@ -13,7 +10,6 @@ use crate::{
 };
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 
 /// Options for address generation
 #[derive(Debug, Clone, Serialize, Deserialize)]

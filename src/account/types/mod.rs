@@ -3,13 +3,9 @@ pub(crate) mod address;
 /// Custom de/serialization for [`address::AddressWrapper`]
 pub(crate) mod address_serde;
 use crate::account::constants::ACCOUNT_ID_PREFIX;
-use address::{parse_bech32_address, AddressWrapper};
 
 use iota_client::bee_message::{
-    address::Address,
-    output::OutputId,
-    payload::transaction::{TransactionId, TransactionPayload},
-    MessageId,
+    address::Address, output::OutputId, payload::transaction::TransactionPayload, MessageId,
 };
 use serde::{Deserialize, Deserializer, Serialize};
 

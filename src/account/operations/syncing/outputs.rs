@@ -2,10 +2,7 @@ use crate::account::{
     constants::PARALLEL_REQUESTS_AMOUNT,
     handle::AccountHandle,
     operations::syncing::SyncOptions,
-    types::{
-        address::{AccountAddress, AddressWrapper},
-        OutputData, OutputKind,
-    },
+    types::{OutputData, OutputKind},
 };
 
 use iota_client::{

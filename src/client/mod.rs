@@ -13,7 +13,7 @@ use url::Url;
 
 use crate::client::options::ClientOptions;
 
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 type ClientInstance = Arc<RwLock<Option<Arc<Client>>>>;
 
