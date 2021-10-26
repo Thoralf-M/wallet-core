@@ -81,20 +81,33 @@ impl AccountManager {
     // Ok(())
     // }
 
-    // todo: find a better name for this
-    // search balance, recovery from mnemonic or balance finder
-    /// Function to find balances, to recover from backups
-    pub async fn search_balance(
-        &self,
-        addresses_per_account: usize,
-        account_start_index: usize,
-    ) -> crate::Result<Vec<AccountHandle>> {
-        Ok(vec![])
-    }
+    /// Find accounts with balances
+    /// `address_gap_limit` defines how many addresses without balance will be checked in each account, if an address has balance, the counter is reset
+    /// `account_gap_limit` defines how many accounts without balance will be checked, if an account has balance, the counter is reset
+    // pub async fn recover_accounts(
+    //     &self,
+    //     address_gap_limit: usize,
+    //     account_gap_limit: usize,
+    // ) -> crate::Result<Vec<AccountHandle>> {
+    //     log::debug!("[recover_accounts]");
+    //     // Count accounts with zero balances in a row
+    //     let mut zero_balance_accounts_in_row = 0;
+    //     loop {
+    //         let new_account = self.create_account().finish().await?;
+
+    //         if zero_balance_accounts_in_row >= account_gap_limit {
+    //             break;
+    //         }
+    //         zero_balance_accounts_in_row += 1;
+    //     }
+    //     // todo: Delete latest addresses and accounts without balance
+
+    //     Ok(self.accounts.read().await.clone())
+    // }
 
     /// Sets the client options for all accounts, syncs them and sets the new bech32_hrp
     pub async fn set_client_options(&self, options: ClientOptions) -> crate::Result<()> {
-        log::debug!("[SET_CLIENT_OPTIONS]");
+        log::debug!("[set_client_options]");
         let mut client_options = self.client_options.write().await;
         *client_options = options.clone();
         crate::client::set_client(options).await?;
