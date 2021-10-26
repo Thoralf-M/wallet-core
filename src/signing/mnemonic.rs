@@ -158,14 +158,14 @@ mod tests {
     async fn addresses() {
         use crate::{
             account::builder::AccountBuilder,
-            signing::{GenerateAddressMetadata, Network, Signer},
+            signing::{GenerateAddressMetadata, Network, Signer, SignerType},
         };
 
         use std::path::Path;
 
         let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
         let _ = super::MnemonicSigner.store_mnemonic(&Path::new(""), mnemonic).await;
-        let account_handle = AccountBuilder::new(Default::default(), Default::default())
+        let account_handle = AccountBuilder::new(Default::default(), SignerType::Mnemonic)
             .finish()
             .await
             .unwrap();
