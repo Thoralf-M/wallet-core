@@ -23,6 +23,7 @@ pub struct AccountManager {
     pub(crate) accounts: Arc<RwLock<Vec<AccountHandle>>>,
     pub(crate) background_syncing_enabled: Arc<AtomicBool>,
     pub(crate) client_options: Arc<RwLock<ClientOptions>>,
+    pub(crate) signer_type: SignerType,
 }
 
 impl AccountManager {
@@ -34,7 +35,7 @@ impl AccountManager {
     /// Create a new account
     pub fn create_account(&self) -> AccountBuilder {
         log::debug!("creating account");
-        AccountBuilder::new(self.accounts.clone())
+        AccountBuilder::new(self.accounts.clone(), self.signer_type.clone())
     }
     // can create_account be merged into get_account?
     pub async fn get_account<I: Into<AccountIdentifier>>(&self, identifier: I) -> crate::Result<AccountHandle> {
@@ -82,8 +83,9 @@ impl AccountManager {
     // }
 
     /// Find accounts with balances
-    /// `address_gap_limit` defines how many addresses without balance will be checked in each account, if an address has balance, the counter is reset
-    /// `account_gap_limit` defines how many accounts without balance will be checked, if an account has balance, the counter is reset
+    /// `address_gap_limit` defines how many addresses without balance will be checked in each account, if an address
+    /// has balance, the counter is reset `account_gap_limit` defines how many accounts without balance will be
+    /// checked, if an account has balance, the counter is reset
     // pub async fn recover_accounts(
     //     &self,
     //     address_gap_limit: usize,
@@ -148,9 +150,12 @@ impl AccountManager {
         Ok(())
     }
 
-    /// Sets the mnemonic for the signer
-    pub async fn store_mnemonic(&self, signer_type: SignerType, mnemonic: Option<String>) -> crate::Result<()> {
-        let signer = crate::signing::get_signer(&signer_type).await;
+    /// Sets the mnemonic for the signer, if none was provided, a random Bip39 mnemonic will be generated with the
+    /// English word list and returned. Apart from a Stronghold backup it's the only way to recover funds, so save
+    /// it securely. If you lose it, you potentially lose everything. With Stronghold this function needs to be
+    /// called onnly once to initialize it, later the Stronghold password is required to use it.
+    pub async fn store_mnemonic(&self, mnemonic: Option<String>) -> crate::Result<String> {
+        let signer = crate::signing::get_signer().await;
         let mut signer = signer.lock().await;
         let mnemonic = match mnemonic {
             Some(m) => {
@@ -159,8 +164,10 @@ impl AccountManager {
             }
             None => self.generate_mnemonic()?,
         };
-        signer.store_mnemonic(std::path::Path::new(""), mnemonic).await?;
-        Ok(())
+        signer
+            .store_mnemonic(std::path::Path::new(""), mnemonic.clone())
+            .await?;
+        Ok(mnemonic)
     }
 
     // storage feature

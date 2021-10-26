@@ -43,7 +43,7 @@ pub(crate) async fn sign_tx_essence(
         _ => crate::signing::Network::Testnet,
     };
 
-    let unlock_blocks = crate::signing::get_signer(account.signer_type())
+    let unlock_blocks = crate::signing::get_signer()
         .await
         .lock()
         .await

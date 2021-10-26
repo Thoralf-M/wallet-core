@@ -24,27 +24,17 @@ pub struct AccountBuilder {
 
 impl AccountBuilder {
     /// Create an IOTA client builder
-    pub fn new(accounts: Arc<RwLock<Vec<AccountHandle>>>) -> Self {
+    pub fn new(accounts: Arc<RwLock<Vec<AccountHandle>>>, signer_type: SignerType) -> Self {
         Self {
             client_options: None,
             alias: None,
-            #[cfg(feature = "stronghold")]
-            signer_type: SignerType::Stronghold,
-            #[cfg(all(feature = "mnemonic", not(feature = "stronghold")))]
-            signer_type: SignerType::Mnemonic,
-            #[cfg(not(any(feature = "mnemonic", feature = "stronghold")))]
-            signer_type: SignerType::Custom("Signer unintialized".to_string()),
+            signer_type,
             accounts,
         }
     }
     /// Set the alias
     pub fn with_alias(mut self, alias: String) -> Self {
         self.alias.replace(alias);
-        self
-    }
-    /// Set the signer type
-    pub fn with_signer_type(mut self, signer_type: SignerType) -> Self {
-        self.signer_type = signer_type;
         self
     }
     // Build the Account

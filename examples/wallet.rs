@@ -10,7 +10,6 @@ use wallet_core::{
     account::{types::OutputKind, RemainderValueStrategy, TransferOptions, TransferOutput},
     account_manager::AccountManager,
     client::options::ClientOptionsBuilder,
-    signing::SignerType,
     Result,
 };
 
@@ -42,7 +41,7 @@ async fn main() -> Result<()> {
     // Get account or create a new one
     let account_alias = "logger";
     let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
-    manager.store_mnemonic(SignerType::Mnemonic, Some(mnemonic)).await?;
+    manager.store_mnemonic(Some(mnemonic)).await?;
     let account = match manager.get_account(account_alias).await {
         Ok(account) => account,
         _ => {

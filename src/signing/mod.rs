@@ -6,7 +6,7 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
-use std::{collections::HashMap, path::Path, sync::Arc};
+use std::{path::Path, sync::Arc};
 
 #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
 pub(crate) mod ledger;
@@ -14,8 +14,8 @@ pub(crate) mod ledger;
 pub(crate) mod mnemonic;
 
 type SignerHandle = Arc<Mutex<Box<dyn Signer + Sync + Send>>>;
-type Signers = Arc<Mutex<HashMap<SignerType, SignerHandle>>>;
-static SIGNERS_INSTANCE: OnceCell<Signers> = OnceCell::new();
+type Signers = Arc<Mutex<SignerHandle>>;
+static SIGNER_INSTANCE: OnceCell<Signers> = OnceCell::new();
 
 /// The signer types.
 #[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
@@ -33,8 +33,6 @@ pub enum SignerType {
     /// Mnemonic, not recommended since it's not as secure as Stronghold or Ledger
     #[cfg(feature = "mnemonic")]
     Mnemonic,
-    /// Custom signer with its identifier.
-    Custom(String),
 }
 
 /// Signer interface.
@@ -63,71 +61,59 @@ pub trait Signer {
 }
 
 fn default_signers() -> Signers {
-    let mut signers = HashMap::new();
-
-    #[cfg(feature = "stronghold")]
-    {
-        signers.insert(
-            SignerType::Stronghold,
-            Arc::new(Mutex::new(
-                Box::new(self::stronghold::StrongholdSigner::default()) as Box<dyn Signer + Sync + Send>
-            )),
-        );
-    }
-
-    #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
-    {
-        signers.insert(
-            SignerType::LedgerNano,
-            Arc::new(Mutex::new(Box::new(ledger::LedgerNanoSigner {
-                is_simulator: false,
-                ..Default::default()
-            }) as Box<dyn Signer + Sync + Send>)),
-        );
-    }
+    #[cfg(feature = "mnemonic")]
+    let signer = self::mnemonic::MnemonicSigner::default();
 
     #[cfg(feature = "ledger-nano-simulator")]
-    {
-        signers.insert(
-            SignerType::LedgerNanoSimulator,
-            Arc::new(Mutex::new(Box::new(ledger::LedgerNanoSigner {
-                is_simulator: true,
-                ..Default::default()
-            }) as Box<dyn Signer + Sync + Send>)),
-        );
-    }
+    let signer = ledger::LedgerNanoSigner {
+        is_simulator: true,
+        ..Default::default()
+    };
 
-    #[cfg(feature = "mnemonic")]
-    {
-        signers.insert(
-            SignerType::Mnemonic,
-            Arc::new(Mutex::new(
-                Box::new(self::mnemonic::MnemonicSigner::default()) as Box<dyn Signer + Sync + Send>
-            )),
-        );
-    }
+    #[cfg(feature = "ledger-nano")]
+    let signer = ledger::LedgerNanoSigner {
+        is_simulator: false,
+        ..Default::default()
+    };
 
-    Arc::new(Mutex::new(signers))
+    #[cfg(feature = "stronghold")]
+    let signer = self::stronghold::StrongholdSigner::default();
+
+    Arc::new(Mutex::new(Arc::new(Mutex::new(
+        Box::new(signer) as Box<dyn Signer + Sync + Send>
+    ))))
 }
 
 /// Sets the signer interface for the given type.
-pub async fn set_signer<S: Signer + Sync + Send + 'static>(signer_type: SignerType, signer: S) {
-    SIGNERS_INSTANCE
-        .get_or_init(default_signers)
-        .lock()
-        .await
-        .insert(signer_type, Arc::new(Mutex::new(Box::new(signer))));
+pub fn set_signer(signer_type: SignerType) {
+    let signer = match signer_type {
+        #[cfg(feature = "mnemonic")]
+        SignerType::Mnemonic => Arc::new(Mutex::new(
+            Box::new(self::mnemonic::MnemonicSigner::default()) as Box<dyn Signer + Sync + Send>
+        )),
+        #[cfg(feature = "ledger-nano")]
+        // don't automatically consoldiate with ledger accounts, because they require approval from the user
+        SignerType::LedgerNano => Arc::new(Mutex::new(Box::new(ledger::LedgerNanoSigner {
+            is_simulator: false,
+            ..Default::default()
+        }) as Box<dyn Signer + Sync + Send>)),
+        #[cfg(feature = "ledger-nano-simulator")]
+        SignerType::LedgerNanoSimulator => Arc::new(Mutex::new(Box::new(ledger::LedgerNanoSimulator {
+            is_simulator: true,
+            ..Default::default()
+        }) as Box<dyn Signer + Sync + Send>)),
+        #[cfg(feature = "stronghold")]
+        SignerType::Stronghold => Arc::new(Mutex::new(
+            Box::new(self::stronghold::StrongholdSigner::default()) as Box<dyn Signer + Sync + Send>
+        )),
+    };
+    let signer = Arc::new(Mutex::new(signer));
+    SIGNER_INSTANCE.get_or_init(|| signer);
 }
 
 /// Gets the signer interface.
-pub(crate) async fn get_signer(signer_type: &SignerType) -> SignerHandle {
-    SIGNERS_INSTANCE
-        .get_or_init(default_signers)
-        .lock()
-        .await
-        .get(signer_type)
-        .cloned()
-        .unwrap_or_else(|| panic!("signer not initialized for type {:?}", signer_type))
+pub(crate) async fn get_signer() -> SignerHandle {
+    SIGNER_INSTANCE.get_or_init(default_signers).lock().await.clone()
 }
 
 /// Metadata provided to [sign_message](trait.Signer.html#method.sign_message).

@@ -38,7 +38,7 @@ pub async fn generate_addresses(
 ) -> crate::Result<Vec<AccountAddress>> {
     log::debug!("[ADDRESS GENERATION] generating {} addresses", amount);
     let mut account = account_handle.write().await;
-    let signer = crate::signing::get_signer(&account.signer_type).await;
+    let signer = crate::signing::get_signer().await;
     let mut signer = signer.lock().await;
 
     // get the highest index for the public or internal addresses

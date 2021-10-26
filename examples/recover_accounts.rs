@@ -6,9 +6,7 @@
 use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigBuilder};
 use log::LevelFilter;
 use std::time::Instant;
-use wallet_core::{
-    account_manager::AccountManager, client::options::ClientOptionsBuilder, signing::SignerType, Result,
-};
+use wallet_core::{account_manager::AccountManager, client::options::ClientOptionsBuilder, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -38,7 +36,7 @@ async fn main() -> Result<()> {
     // Get account or create a new one
     let account_alias = "logger";
     let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
-    manager.store_mnemonic(SignerType::Mnemonic, Some(mnemonic)).await?;
+    manager.store_mnemonic(Some(mnemonic)).await?;
 
     let accounts = manager.recover_accounts(account_alias).await?;
 

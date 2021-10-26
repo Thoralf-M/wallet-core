@@ -165,7 +165,10 @@ mod tests {
 
         let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
         let _ = super::MnemonicSigner.store_mnemonic(&Path::new(""), mnemonic).await;
-        let account_handle = AccountBuilder::new(Default::default()).finish().await.unwrap();
+        let account_handle = AccountBuilder::new(Default::default(), Default::default())
+            .finish()
+            .await
+            .unwrap();
         let account = account_handle.read().await;
         let address = super::MnemonicSigner
             .generate_address(

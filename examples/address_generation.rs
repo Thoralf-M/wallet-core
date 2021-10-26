@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! cargo run --example address_generation --release
+// add --features "ledger-nano" for LedgerNano
 
 use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigBuilder};
 use log::LevelFilter;
@@ -31,6 +32,7 @@ async fn main() -> Result<()> {
 
     let manager = AccountManager::builder()
         .with_client_options(client_options)
+        // .with_signer_type(SignerType::LedgerNano)
         .finish()
         .await?;
     // manager.set_stronghold_password("password").await?;
@@ -38,7 +40,7 @@ async fn main() -> Result<()> {
     // Get account or create a new one
     let account_alias = "logger";
     let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
-    manager.store_mnemonic(SignerType::Mnemonic, Some(mnemonic)).await?;
+    // manager.store_mnemonic(Some(mnemonic)).await?;
     let account = match manager.get_account(account_alias.to_string()).await {
         Ok(account) => account,
         _ => {
@@ -51,7 +53,7 @@ async fn main() -> Result<()> {
         }
     };
 
-    let addresses = account.generate_addresses(5, None).await?;
+    let addresses = account.generate_addresses(3, None).await?;
     let mut bech32_addresses = Vec::new();
     for address in addresses {
         bech32_addresses.push(address.address().to_bech32());
@@ -60,7 +62,7 @@ async fn main() -> Result<()> {
     // generate internal addresses because they are used for the remainder
     // let _address = account
     //     .generate_addresses(
-    //         20,
+    //         2,
     //         Some(AddressGenerationOptions {
     //             internal: true,
     //             ..Default::default()
