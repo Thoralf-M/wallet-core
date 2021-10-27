@@ -19,7 +19,7 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 /// Syncs an account
 pub async fn sync_account(account_handle: &AccountHandle, options: &SyncOptions) -> crate::Result<AccountBalance> {
-    log::debug!("[SYNC] start syncing");
+    log::debug!("[SYNC] start syncing with {:?}", options);
     let syc_start_time = Instant::now();
 
     // prevent syncing the account multiple times simultaneously

@@ -2,6 +2,7 @@ use crate::account::{
     operations::{
         address_generation,
         address_generation::AddressGenerationOptions,
+        balance_finder::search_addresses_with_funds,
         syncing::{sync_account, SyncOptions},
         transfer::{send_transfer, TransferOptions, TransferOutput, TransferResult},
     },
@@ -236,6 +237,15 @@ impl AccountHandle {
         }))
         .await?;
         Ok(())
+    }
+
+    /// Search addresses with funds
+    /// `address_gap_limit` defines how many addresses without balance will be checked in each account, if an address
+    /// has balance, the counter is reset
+    /// Addresses that got crated during this operation and have a higher key_index than the latest one with balance,
+    /// will be removed again, to keep the account size smaller
+    pub(crate) async fn search_addresses_with_funds(&self, address_gap_limit: usize) -> crate::Result<AccountBalance> {
+        search_addresses_with_funds(self, address_gap_limit).await
     }
 }
 

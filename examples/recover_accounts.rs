@@ -33,30 +33,23 @@ async fn main() -> Result<()> {
         .await?;
     // manager.set_stronghold_password("password").await?;
 
-    // Get account or create a new one
-    let account_alias = "logger";
     let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
     manager.store_mnemonic(Some(mnemonic)).await?;
 
-    // let accounts = manager.recover_accounts(account_alias).await?;
+    let accounts = manager.recover_accounts(2, 2).await?;
+    // let accounts = manager.recover_accounts(2, 2).await?;
 
-    // let accounts = manager.get_accounts().await?;
-    // println!("Accounts: {:?}", accounts);
+    for account in accounts.iter() {
+        println!("{}", account.read().await.index());
+    }
+    println!("Accounts len: {:?}", accounts.len());
 
-    // // get latest account
-    // let account = accounts[accounts.len() - 1];
-    // let now = Instant::now();
-    // let balance = account.sync(None).await?;
-    // println!("Syncing took: {:.2?}", now.elapsed());
-    // println!("Balance: {:?}", balance);
-
-    // let addresses_with_balance = account.list_addresses_with_balance().await?;
-    // println!("Addresses with balance: {}", addresses_with_balance.len());
-
-    // let now = Instant::now();
-    // let balance = account.sync(None).await?;
-    // println!("Syncing took: {:.2?}", now.elapsed());
-    // println!("Balance: {:?}", balance);
+    // get latest account
+    let account = &accounts[accounts.len() - 1];
+    let now = Instant::now();
+    let balance = account.sync(None).await?;
+    println!("Syncing took: {:.2?}", now.elapsed());
+    println!("Balance: {:?}", balance);
 
     Ok(())
 }
