@@ -8,19 +8,19 @@ license = "Apache-2.0"
 
 [dependencies]
 # put patches on all dependencies and update only if older than 3 months for security reasons;
-tokio = { version = "1.12.0", features = ["macros", "sync", "time", "rt", "rt-multi-thread"] }
-iota-client = { git = "https://github.com/iotaledger/iota.rs", rev = "a69001296020af781c1ee9c2349cb7a5ac51f46b" }
-log = "0.4.14"
-once_cell = "1.8.0"
-serde = { version = "1.0.130", features = ["derive"] }
-serde_json = "1.0.68"
-thiserror = "1.0.29"
-url = { version = "2.2.2", features = ["serde"] }
-async-trait = "0.1.51"
-getset = "0.1.1"
-futures = "0.3.17"
-iota-crypto = { version = "0.7.0", features = ["std", "blake2b", "ed25519", "random", "slip10", "bip39", "bip39-en"]}
-hex = "0.4.3"
+tokio = { version = "1.12.0", default_features = false }
+iota-client = { git = "https://github.com/iotaledger/iota.rs", rev = "441bc46ccd20b51821cc64c4faa1d48f1ec0b2af", default_features = false, features = ["async"] }
+log = { version = "0.4.14", default_features = false }
+once_cell = { version = "1.8.0", default_features = false, features = ["std"] }
+serde = { version = "1.0.130", default_features = false, features = ["derive"] }
+serde_json =  { version = "1.0.68", default_features = false }
+thiserror =  { version = "1.0.29", default_features = false }
+url = { version = "2.2.2", default_features = false, features = ["serde"] }
+async-trait =  { version ="0.1.51", default_features = false }
+getset =  { version = "0.1.1", default_features = false }
+futures =  { version = "0.3.17", default_features = false }
+iota-crypto = { version = "0.7.0", default_features = false, features = ["std", "blake2b", "ed25519", "random", "slip10", "bip39", "bip39-en"] }
+hex =  { version = "0.4.3", default_features = false }
 
 # storage
 # rocksdb = { git="https://github.com/iotaledger/rust-rocksdb", rev = "70f2a53529ecc1853a2c025cec7f9d00bd50352c", default-features = false, features = ["lz4"] }
