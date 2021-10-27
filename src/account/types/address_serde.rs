@@ -4,11 +4,12 @@
 use crate::account::types::address::AddressWrapper;
 use serde::{de::Visitor, Deserializer, Serializer};
 
-// custom de/serialization to use the bech32 representation
+/// custom AddressWrapperserialization to use the bech32 representation
 pub fn serialize<S: Serializer>(address: &AddressWrapper, s: S) -> std::result::Result<S::Ok, S::Error> {
     s.serialize_str(&address.to_bech32())
 }
 
+/// custom AddressWrapper derialization to use the bech32 representation
 pub fn deserialize<'de, D>(deserializer: D) -> Result<AddressWrapper, D::Error>
 where
     D: Deserializer<'de>,
