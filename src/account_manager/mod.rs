@@ -1,4 +1,5 @@
 pub(crate) mod builder;
+pub(crate) mod operations;
 
 #[cfg(feature = "events")]
 use crate::events::types::{Event, WalletEventType};
@@ -10,6 +11,7 @@ use crate::{
     signing::SignerType,
 };
 use builder::AccountManagerBuilder;
+use operations::{get_account, recover_accounts};
 
 use iota_client::Client;
 use tokio::sync::RwLock;
@@ -37,39 +39,9 @@ impl AccountManager {
         log::debug!("creating account");
         AccountBuilder::new(self.accounts.clone(), self.signer_type.clone())
     }
-    // can create_account be merged into get_account?
+    /// Get an account with an AccountIdentifier
     pub async fn get_account<I: Into<AccountIdentifier>>(&self, identifier: I) -> crate::Result<AccountHandle> {
-        log::debug!("get account");
-        let account_id = identifier.into();
-        let accounts = self.accounts.read().await;
-
-        match account_id {
-            AccountIdentifier::Id(id) => {
-                for account_handle in accounts.iter() {
-                    let account = account_handle.read().await;
-                    if account.id() == &id {
-                        return Ok(account_handle.clone());
-                    }
-                }
-            }
-            AccountIdentifier::Index(index) => {
-                for account_handle in accounts.iter() {
-                    let account = account_handle.read().await;
-                    if account.index() == &index {
-                        return Ok(account_handle.clone());
-                    }
-                }
-            }
-            AccountIdentifier::Alias(alias) => {
-                for account_handle in accounts.iter() {
-                    let account = account_handle.read().await;
-                    if account.alias() == &alias {
-                        return Ok(account_handle.clone());
-                    }
-                }
-            }
-        };
-        Err(crate::Error::AccountNotFound)
+        get_account(self, identifier).await
     }
     /// Get all accounts
     pub async fn get_accounts(&self) -> crate::Result<Vec<AccountHandle>> {
@@ -92,53 +64,7 @@ impl AccountManager {
         address_gap_limit: usize,
         account_gap_limit: usize,
     ) -> crate::Result<Vec<AccountHandle>> {
-        log::debug!("[recover_accounts]");
-        let mut old_accounts = Vec::new();
-        let old_accounts_len = self.accounts.read().await.len();
-        if old_accounts_len != 0 {
-            // Search for addresses in current accounts, rev() because we do that later with the new accounts and want
-            // to have it all ordered at the end
-            for account in self.accounts.read().await.iter() {
-                account.search_addresses_with_funds(address_gap_limit).await?;
-                old_accounts.push(account.clone());
-            }
-        }
-        // Count accounts with zero balances in a row
-        let mut zero_balance_accounts_in_row = 0;
-        let mut generated_accounts = Vec::new();
-        loop {
-            log::debug!("[recover_accounts] generating new account");
-            let new_account = self.create_account().finish().await?;
-            let account_balance = new_account.search_addresses_with_funds(address_gap_limit).await?;
-            generated_accounts.push((new_account, account_balance.clone()));
-            if account_balance.total == 0 {
-                zero_balance_accounts_in_row += 1;
-                if zero_balance_accounts_in_row >= account_gap_limit {
-                    break;
-                }
-            } else {
-                // reset if we found an account with balance
-                zero_balance_accounts_in_row = 0;
-            }
-        }
-        // delete accounts without balance
-        let mut new_accounts = Vec::new();
-        // iterate reversed to ignore all latest accounts that have no balance, but add all accounts that are below one
-        // with balance
-        for (account_handle, account_balance) in generated_accounts.iter().rev() {
-            let account = account_handle.read().await;
-            if !new_accounts.is_empty() || account_balance.total != 0 {
-                new_accounts.push(account_handle.clone());
-            }
-        }
-        new_accounts.reverse();
-
-        let mut accounts = self.accounts.write().await;
-        old_accounts.append(&mut new_accounts);
-        *accounts = old_accounts;
-        drop(accounts);
-
-        Ok(self.accounts.read().await.clone())
+        recover_accounts(self, address_gap_limit, account_gap_limit).await
     }
 
     /// Sets the client options for all accounts, syncs them and sets the new bech32_hrp
