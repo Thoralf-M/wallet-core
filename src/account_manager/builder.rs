@@ -8,7 +8,7 @@ use tokio::sync::RwLock;
 
 #[cfg(feature = "storage")]
 use std::path::PathBuf;
-use std::sync::{atomic::AtomicBool, Arc};
+use std::sync::{atomic::AtomicUsize, Arc};
 
 /// Builder for the account manager.
 pub struct AccountManagerBuilder {
@@ -49,10 +49,12 @@ impl AccountManagerBuilder {
     pub fn new() -> Self {
         Default::default()
     }
+    /// Set the IOTA client options.
     pub fn with_client_options(mut self, options: ClientOptions) -> Self {
         self.client_options = options;
         self
     }
+    /// Set the signer type to be used.
     pub fn with_signer_type(mut self, signer_type: SignerType) -> Self {
         self.signer_type = signer_type;
         self
@@ -63,7 +65,7 @@ impl AccountManagerBuilder {
         crate::client::set_client(self.client_options.clone()).await?;
         Ok(AccountManager {
             accounts: Arc::new(RwLock::new(Vec::new())),
-            background_syncing_enabled: Arc::new(AtomicBool::new(true)),
+            background_syncing_status: Arc::new(AtomicUsize::new(0)),
             client_options: Arc::new(RwLock::new(self.client_options)),
             signer_type: self.signer_type,
         })

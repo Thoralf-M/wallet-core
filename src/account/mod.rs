@@ -25,10 +25,7 @@ use getset::{Getters, Setters};
 use iota_client::bee_message::{output::OutputId, payload::transaction::TransactionId};
 use serde::{Deserialize, Serialize};
 
-use std::{
-    collections::{HashMap, HashSet},
-    time::Duration,
-};
+use std::collections::{HashMap, HashSet};
 
 /// An Account.
 #[derive(Debug, Getters, Setters, Serialize, Deserialize, Clone)]
@@ -68,7 +65,6 @@ pub struct Account {
 /// Account options
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub(crate) struct AccountOptions {
-    pub(crate) background_syncing_interval: Duration,
     pub(crate) output_consolidation_threshold: usize,
     pub(crate) automatic_output_consolidation: bool,
     /* #[cfg(feature = "storage")]

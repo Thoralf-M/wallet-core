@@ -11,7 +11,6 @@ use tokio::sync::RwLock;
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,
-    time::Duration,
 };
 
 /// The AccountBuilder
@@ -63,7 +62,6 @@ impl AccountBuilder {
             pending_transactions: HashSet::new(),
             // sync interval, output consolidation
             account_options: AccountOptions {
-                background_syncing_interval: Duration::from_secs(7),
                 output_consolidation_threshold: consolidation_threshold,
                 automatic_output_consolidation: true,
             },

@@ -5,25 +5,35 @@ pub(crate) mod operations;
 use crate::events::types::{Event, WalletEventType};
 use crate::{
     account::{
-        builder::AccountBuilder, handle::AccountHandle, operations::syncing::SyncOptions, types::AccountIdentifier,
+        builder::AccountBuilder,
+        handle::AccountHandle,
+        operations::syncing::SyncOptions,
+        types::{AccountBalance, AccountIdentifier},
     },
     client::options::ClientOptions,
     signing::SignerType,
 };
 use builder::AccountManagerBuilder;
-use operations::{get_account, recover_accounts};
+use operations::{get_account, recover_accounts, start_background_syncing};
 
 use iota_client::Client;
 use tokio::sync::RwLock;
 
-use std::sync::{atomic::AtomicBool, Arc};
+use std::{
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
 
 /// The account manager, used to create and get accounts. One account manager can hold many accounts, but they should
 /// all share the same signer type with the same seed/mnemonic.
 pub struct AccountManager {
     // should we use a hashmap instead of a vec like in wallet.rs?
     pub(crate) accounts: Arc<RwLock<Vec<AccountHandle>>>,
-    pub(crate) background_syncing_enabled: Arc<AtomicBool>,
+    // 0 = not running, 1 = running, 2 = stopping
+    pub(crate) background_syncing_status: Arc<AtomicUsize>,
     pub(crate) client_options: Arc<RwLock<ClientOptions>>,
     pub(crate) signer_type: SignerType,
 }
@@ -80,10 +90,32 @@ impl AccountManager {
         Ok(())
     }
 
-    pub fn start_background_syncing(&self, options: SyncOptions) -> crate::Result<()> {
-        Ok(())
+    /// Get the balance of all accounts added together
+    pub async fn balance(&self) -> crate::Result<AccountBalance> {
+        let mut balance = AccountBalance { total: 0, available: 0 };
+        let accounts = self.accounts.read().await;
+        for account in accounts.iter() {
+            let account_balance = account.balance().await?;
+            balance.total += account_balance.total;
+            balance.available += account_balance.available;
+        }
+        Ok(balance)
     }
+
+    /// Start the background syncing process for all accounts, default interval is 7 seconds
+    pub async fn start_background_syncing(
+        &self,
+        options: Option<SyncOptions>,
+        interval: Option<Duration>,
+    ) -> crate::Result<()> {
+        start_background_syncing(self, options, interval).await
+    }
+
+    /// Stop the background syncing of the accounts
     pub fn stop_background_syncing(&self) -> crate::Result<()> {
+        log::debug!("[stop_background_syncing]");
+        // send stop request
+        self.background_syncing_status.store(2, Ordering::Relaxed);
         Ok(())
     }
 
