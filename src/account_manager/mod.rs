@@ -20,6 +20,7 @@ use iota_client::Client;
 use tokio::sync::RwLock;
 
 use std::{
+    path::Path,
     sync::{
         atomic::{AtomicUsize, Ordering},
         Arc,

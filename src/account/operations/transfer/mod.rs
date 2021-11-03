@@ -108,6 +108,14 @@ pub async fn send_transfer(
         },
     );
     account.pending_transactions.insert(transaction_id);
+    #[cfg(feature = "storage")]
+    log::debug!("[TRANSFER] storing account {}", account.index());
+    crate::storage::manager::get()
+        .await?
+        .lock()
+        .await
+        .save_account(&account)
+        .await?;
     Ok(TransferResult {
         transaction_id,
         message_id,

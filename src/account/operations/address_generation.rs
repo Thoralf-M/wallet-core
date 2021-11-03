@@ -102,6 +102,14 @@ pub async fn generate_addresses(
     } else {
         account.public_addresses.extend(generate_addresses.clone());
     };
-    // todo: store account to database if storage is used
+
+    #[cfg(feature = "storage")]
+    log::debug!("[ADDRESS GENERATION] storing account {}", account.index());
+    crate::storage::manager::get()
+        .await?
+        .lock()
+        .await
+        .save_account(&account)
+        .await?;
     Ok(generate_addresses)
 }

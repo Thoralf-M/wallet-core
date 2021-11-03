@@ -17,10 +17,10 @@ use std::sync::Arc;
 
 type ClientInstance = Arc<RwLock<Option<Arc<Client>>>>;
 
-/// Gets the client instances map.
+/// Gets the client instance.
 fn client_instance() -> &'static ClientInstance {
-    static INSTANCES: Lazy<ClientInstance> = Lazy::new(Default::default);
-    &INSTANCES
+    static CLIENT_INSTANCE: Lazy<ClientInstance> = Lazy::new(Default::default);
+    &CLIENT_INSTANCE
 }
 
 pub(crate) async fn get_client() -> crate::Result<Arc<Client>> {

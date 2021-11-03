@@ -159,6 +159,14 @@ async fn update_account(
         account.unspent_outputs.remove(&spent_output_id);
         log::debug!("[SYNC] Unlocked {}", spent_output_id);
     }
+    #[cfg(feature = "storage")]
+    log::debug!("[SYNC] storing account {}", account.index());
+    crate::storage::manager::get()
+        .await?
+        .lock()
+        .await
+        .save_account(&account)
+        .await?;
     // println!("{:#?}", account);
     Ok(())
 }

@@ -82,6 +82,9 @@ pub enum Error {
     /// Account not found
     #[error("account not found")]
     AccountNotFound,
+    /// Record not found
+    #[error("Record not found")]
+    RecordNotFound,
     /// invalid remainder value target address defined on `RemainderValueStrategy`.
     /// the address must belong to the account.
     #[error("the remainder value address doesn't belong to the account")]
@@ -239,6 +242,9 @@ pub enum Error {
     /// Client not set error
     #[error("client not set")]
     ClientNotSet,
+    /// Error from the logger in the bee_common crate.
+    #[error("{0}")]
+    BeeCommonLogger(iota_client::common::logger::Error),
 }
 
 // impl Drop for Error {
@@ -256,6 +262,12 @@ impl From<iota_client::Error> for Error {
 impl From<iota_client::bee_message::Error> for Error {
     fn from(error: iota_client::bee_message::Error) -> Self {
         Self::BeeMessage(error)
+    }
+}
+
+impl From<iota_client::common::logger::Error> for Error {
+    fn from(error: iota_client::common::logger::Error) -> Self {
+        Self::BeeCommonLogger(error)
     }
 }
 
@@ -321,7 +333,8 @@ impl serde::Serialize for Error {
             Self::InsufficientFunds(_, _) => serialize_variant(self, serializer, "InsufficientFunds"),
             Self::AccountNotEmpty => serialize_variant(self, serializer, "AccountNotEmpty"),
             Self::LatestAccountIsEmpty => serialize_variant(self, serializer, "LatestAccountIsEmpty"),
-            Self::AccountNotFound => serialize_variant(self, serializer, "RecordNotFound"),
+            Self::AccountNotFound => serialize_variant(self, serializer, "AccountNotFound"),
+            Self::RecordNotFound => serialize_variant(self, serializer, "RecordNotFound"),
             Self::InvalidRemainderValueAddress => serialize_variant(self, serializer, "InvalidRemainderValueAddress"),
             Self::Storage(_) => serialize_variant(self, serializer, "Storage"),
             Self::Panic(_) => serialize_variant(self, serializer, "Panic"),
@@ -382,6 +395,7 @@ impl serde::Serialize for Error {
             Self::MissingUnlockBlock => serialize_variant(self, serializer, "MissingUnlockBlock"),
             Self::CustomInputError(_) => serialize_variant(self, serializer, "CustomInputError"),
             Self::ClientNotSet => serialize_variant(self, serializer, "ClientNotSet"),
+            Self::BeeCommonLogger(_) => serialize_variant(self, serializer, "BeeCommonLogger"),
         }
     }
 }

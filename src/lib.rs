@@ -14,6 +14,7 @@ pub mod account_manager;
 /// languages.
 // #[cfg(feature = "actor")]
 // pub mod actor;
+
 /// The client module to use iota_client for interactions with the IOTA Tangle.
 pub mod client;
 /// The error module.
@@ -23,9 +24,16 @@ pub mod error;
 pub mod events;
 /// Signing interfaces for address generation and transaction signing.
 pub mod signing;
-// #[cfg(feature = "storage")]
-// /// The storage module.
-// pub(crate) mod storage;
+
+// todo: add Stronghold support, refactor, check if it can't lock funds if it's stored with locked outputs and
+// transaction creation failed so they should be unlocked again and other edge cases
+#[cfg(feature = "storage")]
+/// The storage module.
+pub(crate) mod storage;
+
+/// Module for debug logs.
+pub mod logger;
+
 // #[cfg(feature = "stronghold")]
 // #[cfg_attr(docsrs, doc(cfg(feature = "stronghold")))]
 // pub(crate) mod stronghold;
