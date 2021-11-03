@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["client_instance","Gets the client instances map."],["convert_urls",""],["get_client",""],["set_client",""]],"mod":[["api",""],["node",""],["options",""]],"type":[["ClientInstance",""]]});
+initSidebarItems({"fn":[["client_instance","Gets the client instance."],["convert_urls",""],["get_client",""],["set_client",""]],"mod":[["api",""],["node",""],["options",""]],"type":[["ClientInstance",""]]});

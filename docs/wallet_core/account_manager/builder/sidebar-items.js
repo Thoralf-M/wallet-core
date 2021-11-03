@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["AccountManagerBuilder","Builder for the account manager."]]});
+initSidebarItems({"struct":[["AccountManagerBuilder","Builder for the account manager."],["StorageOptions",""]]});

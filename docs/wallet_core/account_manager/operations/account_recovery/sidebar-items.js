@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["recover_accounts","Find accounts with balances `address_gap_limit` defines how many addresses without balance will be checked in each account, if an address has balance, the counter is reset `account_gap_limit` defines how many accounts without balance will be checked, if an account has balance, the counter is reset"]]});

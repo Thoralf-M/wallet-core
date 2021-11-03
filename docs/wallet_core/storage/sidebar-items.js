@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["decrypt_record",""],["encrypt_record",""]],"mod":[["adapter","Storage adapter."],["manager","Storage manager."]],"struct":[["Storage",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get_account","Get an account with an AccountIdentifier"]]});
