@@ -1,3 +1,6 @@
+// Copyright 2021 IOTA Stiftung
+// SPDX-License-Identifier: Apache-2.0
+
 use crate::account::{
     handle::AccountHandle,
     operations::transfer::submit_transaction::submit_transaction_payload,

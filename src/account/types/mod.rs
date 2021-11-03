@@ -1,3 +1,6 @@
+// Copyright 2021 IOTA Stiftung
+// SPDX-License-Identifier: Apache-2.0
+
 /// Address types used in the account
 pub(crate) mod address;
 /// Custom de/serialization for [`address::AddressWrapper`]

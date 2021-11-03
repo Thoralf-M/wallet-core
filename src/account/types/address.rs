@@ -1,3 +1,6 @@
+// Copyright 2021 IOTA Stiftung
+// SPDX-License-Identifier: Apache-2.0
+
 use getset::{Getters, Setters};
 use iota_client::bee_message::{address::Address, output::OutputId};
 use serde::{Deserialize, Serialize};

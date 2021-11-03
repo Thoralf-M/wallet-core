@@ -1,3 +1,6 @@
+// Copyright 2021 IOTA Stiftung
+// SPDX-License-Identifier: Apache-2.0
+
 /// Amount at which outputs on a single addresses will get consolidated by default if consolidatioin is enabled
 pub(crate) const DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD: usize = 100;
 /// Amount at which outputs on a single addresses will get consolidated by default with a ledger signer if

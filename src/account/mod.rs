@@ -1,3 +1,6 @@
+// Copyright 2021 IOTA Stiftung
+// SPDX-License-Identifier: Apache-2.0
+
 /// The module with the AccountBuilder.
 pub(crate) mod builder;
 /// Constants used for the account and account operations.

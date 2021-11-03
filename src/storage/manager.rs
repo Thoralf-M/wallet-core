@@ -4,7 +4,7 @@
 use crate::{
     account::Account,
     account_manager::builder::AccountManagerBuilder,
-    storage::{decrypt_record, Storage, StorageAdapter},
+    storage::{constants::*, decrypt_record, Storage, StorageAdapter},
 };
 
 use once_cell::sync::OnceCell;
@@ -17,26 +17,6 @@ use std::{
     path::{Path, PathBuf},
     sync::Arc,
 };
-
-/// The default storage folder.
-pub const DEFAULT_STORAGE_FOLDER: &str = "./storage";
-
-/// The default stronghold storage file name.
-#[cfg(feature = "stronghold")]
-#[cfg_attr(docsrs, doc(cfg(feature = "stronghold")))]
-pub const STRONGHOLD_FILENAME: &str = "wallet.stronghold";
-
-/// The default RocksDB storage path.
-pub const ROCKSDB_FOLDERNAME: &str = "walletdb";
-
-const ACCOUNT_MANAGER_INDEXATION_KEY: &str = "iota-wallet-account-manager";
-
-const ACCOUNTS_INDEXATION_KEY: &str = "iota-wallet-accounts";
-const ACCOUNT_INDEXATION_KEY: &str = "iota-wallet-account-";
-
-#[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
-// Key to store the first address in the db so it can be used to verify that new accounts use the same mnemonic
-const FIRST_LEDGER_ADDRESS_KEY: &str = "FIRST_LEDGER_ADDRESS";
 
 /// The storage used by the manager.
 #[derive(Debug, Clone, Serialize, Deserialize)]

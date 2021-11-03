@@ -1,3 +1,6 @@
+// Copyright 2021 IOTA Stiftung
+// SPDX-License-Identifier: Apache-2.0
+
 #[cfg(feature = "events")]
 use crate::events::types::{TransferProgressEvent, WalletEvent};
 use crate::{

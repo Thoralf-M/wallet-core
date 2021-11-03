@@ -1,3 +1,6 @@
+// Copyright 2021 IOTA Stiftung
+// SPDX-License-Identifier: Apache-2.0
+
 use crate::account::types::{address::AccountAddress, OutputKind};
 
 use iota_client::bee_message::{output::OutputId, payload::indexation::IndexationPayload};

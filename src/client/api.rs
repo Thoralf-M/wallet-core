@@ -1,3 +1,6 @@
+// Copyright 2021 IOTA Stiftung
+// SPDX-License-Identifier: Apache-2.0
+
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 
 use std::{hash::Hash, str::FromStr};

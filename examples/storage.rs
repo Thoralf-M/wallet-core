@@ -44,6 +44,7 @@ async fn main() -> Result<()> {
     }
     println!("Generated new addresses: {:#?}", bech32_addresses);
 
+    println!("addresses: {:?}", account.list_addresses().await?.len());
     let now = Instant::now();
     let balance = account.sync(None).await?;
     println!("Syncing took: {:.2?}", now.elapsed());
