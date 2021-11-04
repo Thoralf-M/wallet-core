@@ -3,6 +3,8 @@
 
 use crate::{account::handle::AccountHandle, account_manager::AccountManager};
 
+use std::collections::HashSet;
+
 /// Find accounts with balances
 /// `address_gap_limit` defines how many addresses without balance will be checked in each account, if an address
 /// has balance, the counter is reset
@@ -14,16 +16,15 @@ pub async fn recover_accounts(
     account_gap_limit: usize,
 ) -> crate::Result<Vec<AccountHandle>> {
     log::debug!("[recover_accounts]");
-    let mut old_accounts = Vec::new();
-    let old_accounts_len = account_manager.accounts.read().await.len();
-    if old_accounts_len != 0 {
-        // Search for addresses in current accounts, rev() because we do that later with the new accounts and want
-        // to have it all ordered at the end
-        for account in account_manager.accounts.read().await.iter() {
-            account.search_addresses_with_funds(address_gap_limit).await?;
-            old_accounts.push(account.clone());
-        }
+    let mut account_indexes_to_keep = HashSet::new();
+
+    // Search for addresses in current accounts
+    for account_handle in account_manager.accounts.read().await.iter() {
+        account_handle.search_addresses_with_funds(address_gap_limit).await?;
+        let account_index = *account_handle.read().await.index();
+        account_indexes_to_keep.insert(account_index);
     }
+
     // Count accounts with zero balances in a row
     let mut zero_balance_accounts_in_row = 0;
     let mut generated_accounts = Vec::new();
@@ -42,21 +43,38 @@ pub async fn recover_accounts(
             zero_balance_accounts_in_row = 0;
         }
     }
-    // delete accounts without balance
-    let mut new_accounts = Vec::new();
     // iterate reversed to ignore all latest accounts that have no balance, but add all accounts that are below one
     // with balance
+    let mut got_account_with_balance = false;
     for (account_handle, account_balance) in generated_accounts.iter().rev() {
         let account = account_handle.read().await;
-        if !new_accounts.is_empty() || account_balance.total != 0 {
-            new_accounts.push(account_handle.clone());
+        if got_account_with_balance || account_balance.total != 0 {
+            got_account_with_balance = true;
+            account_indexes_to_keep.insert(*account_handle.read().await.index());
         }
     }
-    new_accounts.reverse();
 
+    // remove accounts without balance
     let mut accounts = account_manager.accounts.write().await;
-    old_accounts.append(&mut new_accounts);
-    *accounts = old_accounts;
+    let mut new_accounts = Vec::new();
+    for account_handle in accounts.iter() {
+        let account_index = *account_handle.read().await.index();
+        if account_indexes_to_keep.contains(&account_index) {
+            new_accounts.push((account_index, account_handle.clone()));
+        } else {
+            // accounts are stored during syncing, delete the empty accounts again
+            #[cfg(feature = "storage")]
+            log::debug!("[recover_accounts] delete emtpy account {}", account_index);
+            crate::storage::manager::get()
+                .await?
+                .lock()
+                .await
+                .remove_account(account_index)
+                .await?;
+        }
+    }
+    new_accounts.sort_by_key(|(index, acc)| *index);
+    *accounts = new_accounts.into_iter().map(|(_, acc)| acc).collect();
     drop(accounts);
 
     Ok(account_manager.accounts.read().await.clone())
