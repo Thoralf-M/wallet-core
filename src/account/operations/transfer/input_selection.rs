@@ -99,10 +99,13 @@ pub(crate) async fn select_inputs(
         .cloned()
         .collect();
 
-    if input_sum < amount_to_send {
-        return Err(crate::Error::InsufficientFunds(input_sum, amount_to_send));
+    // recalculate the input sum, because during take_while() we maybe also added a last output, even if it didn't get
+    // added anymore
+    let selected_input_sum: u64 = selected_outputs.iter().map(|o| o.amount).sum();
+    if selected_input_sum < amount_to_send {
+        return Err(crate::Error::InsufficientFunds(selected_input_sum, amount_to_send));
     }
-    let remainder_value = input_sum - amount_to_send;
+    let remainder_value = selected_input_sum - amount_to_send;
     if remainder_value != 0 && remainder_value < MIN_DUST_ALLOWANCE_VALUE {
         return Err(crate::Error::LeavingDustError(format!(
             "Transaction would leave dust behind ({}i)",

@@ -4,21 +4,19 @@
 //! cargo run --example address_generation --release
 // add --features "ledger-nano" for LedgerNano
 
-use iota_client::common::logger::{logger_init, LoggerConfig, LoggerOutputConfigBuilder};
-use log::LevelFilter;
 use std::time::Instant;
 use wallet_core::{
-    account_manager::AccountManager, client::options::ClientOptionsBuilder, signing::SignerType, Result,
+    account_manager::AccountManager,
+    client::options::ClientOptionsBuilder,
+    logger::{init_logger, LevelFilter},
+    signing::SignerType,
+    Result,
 };
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Generates a wallet.log file with logs for debugging
-    let output_config = LoggerOutputConfigBuilder::new()
-        .name("wallet.log")
-        .level_filter(LevelFilter::Debug);
-    let config = LoggerConfig::build().with_output(output_config).finish();
-    logger_init(config).unwrap();
+    init_logger("wallet.log", LevelFilter::Debug)?;
 
     let client_options = ClientOptionsBuilder::new()
         .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?

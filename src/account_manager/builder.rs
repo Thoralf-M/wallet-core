@@ -38,7 +38,7 @@ pub struct StorageOptions {
 impl Default for StorageOptions {
     fn default() -> Self {
         StorageOptions {
-            storage_folder: "wallet-db".into(),
+            storage_folder: "walletdb".into(),
             storage_file_name: None,
             storage_encryption_key: None,
             manager_store: ManagerStorage::Rocksdb,

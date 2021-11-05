@@ -1,9 +1,10 @@
 // Copyright 2021 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
 
-//! cargo run --example threads --release
+//! cargo run --example pong --release
 
-// In this example we will try to send transactions from multiple threads simultaneously
+// In this example we will try to send transactions from multiple threads simultaneously to the first 300 addresses of
+// the first account (ping_account)
 
 use wallet_core::{
     account::{types::OutputKind, RemainderValueStrategy, TransferOptions, TransferOutput},
@@ -16,7 +17,7 @@ use wallet_core::{
 #[tokio::main]
 async fn main() -> Result<()> {
     // Generates a wallet.log file with logs for debugging
-    init_logger("wallet.log", LevelFilter::Debug)?;
+    init_logger("pong-wallet.log", LevelFilter::Debug)?;
 
     let client_options = ClientOptionsBuilder::new()
         .with_node("https://api.lb-0.h.chrysalis-devnet.iota.cafe")?
@@ -30,14 +31,27 @@ async fn main() -> Result<()> {
 
     let manager = AccountManager::builder()
         .with_client_options(client_options)
+        .with_storage_folder("pongdb")
         .finish()
         .await?;
 
     // Get account or create a new one
-    let account_alias = "thread_account";
+    let account_alias = "ping";
     let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
     manager.store_mnemonic(Some(mnemonic)).await?;
-    let account = match manager.get_account(account_alias.to_string()).await {
+    let ping_account = match manager.get_account(account_alias.to_string()).await {
+        Ok(account) => account,
+        _ => {
+            // first we'll create an example account and store it
+            manager
+                .create_account()
+                .with_alias(account_alias.to_string())
+                .finish()
+                .await?
+        }
+    };
+    let account_alias = "pong";
+    let pong_account = match manager.get_account(account_alias.to_string()).await {
         Ok(account) => account,
         _ => {
             // first we'll create an example account and store it
@@ -49,28 +63,39 @@ async fn main() -> Result<()> {
         }
     };
 
-    let _address = account.generate_addresses(10, None).await?;
-    for ad in _address {
-        println!("{}", ad.address().to_bech32());
+    let amount_addresses = 100;
+    // generate addresses so we find all funds
+    if pong_account.list_addresses().await?.len() < amount_addresses {
+        pong_account.generate_addresses(amount_addresses, None).await?;
     }
-    let balance = account.sync(None).await?;
+    let balance = ping_account.sync(None).await?;
     println!("Balance: {:?}", balance);
+    // generate addresses from the second account to which we will send funds
+    let ping_addresses = {
+        let mut addresses = ping_account.list_addresses().await?;
+        if addresses.len() < amount_addresses {
+            addresses = ping_account.generate_addresses(amount_addresses, None).await?
+        };
+        addresses
+    };
 
-    for _ in 0..1000 {
+    for address_index in 0..amount_addresses {
         let mut threads = Vec::new();
-        for n in 0..5 {
-            let account_ = account.clone();
+        for n in 1..4 {
+            let pong_account_ = pong_account.clone();
+            let ping_addresses_ = ping_addresses.clone();
             threads.push(async move {
                 tokio::spawn(async move {
                     // send transaction
                     let outputs = vec![TransferOutput {
-                        address: "atoi1qz8wq4ln6sn68hvgwp9r26dw3emdlg7at0mrtmhz709zwwcxvpp46xx2cmj".to_string(),
-                        amount: 1_000_000,
+                        address: ping_addresses_[address_index].address().to_bech32(),
+                        // send one or two Mi for more different transactions
+                        amount: n * 1_000_000,
                         // we create a dust allowance outputs so we can reuse the address even with remainder
                         // output_kind: Some(OutputKind::SignatureLockedSingle),
                         output_kind: Some(OutputKind::SignatureLockedDustAllowance),
                     }];
-                    let res = account_
+                    let res = pong_account_
                         .send(
                             outputs,
                             Some(TransferOptions {

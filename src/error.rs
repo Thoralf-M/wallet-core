@@ -245,6 +245,9 @@ pub enum Error {
     /// Error from the logger in the bee_common crate.
     #[error("{0}")]
     BeeCommonLogger(iota_client::common::logger::Error),
+    /// Empty output amount error
+    #[error("output amount can't be 0")]
+    EmptyOutputAmount,
 }
 
 // impl Drop for Error {
@@ -396,6 +399,7 @@ impl serde::Serialize for Error {
             Self::CustomInputError(_) => serialize_variant(self, serializer, "CustomInputError"),
             Self::ClientNotSet => serialize_variant(self, serializer, "ClientNotSet"),
             Self::BeeCommonLogger(_) => serialize_variant(self, serializer, "BeeCommonLogger"),
+            Self::EmptyOutputAmount => serialize_variant(self, serializer, "EmptyOutputAmount"),
         }
     }
 }

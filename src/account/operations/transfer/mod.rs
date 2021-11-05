@@ -46,6 +46,9 @@ pub async fn send_transfer(
 ) -> crate::Result<TransferResult> {
     log::debug!("[TRANSFER] send_transfer");
     let amount = outputs.iter().map(|x| x.amount).sum();
+    if amount == 0 {
+        return Err(crate::Error::EmptyOutputAmount);
+    };
     // validate outputs amount
     if !INPUT_OUTPUT_COUNT_RANGE.contains(&outputs.len()) {
         return Err(crate::Error::TooManyOutputs(outputs.len(), INPUT_OUTPUT_COUNT_MAX));

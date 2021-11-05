@@ -5,4 +5,9 @@
 # Cargo
 **/out/
 **/target/
-**/wallet.log
+
+# wallet
+**.log
+**/walletdb/
+**/pingdb/
+**/pongdb/
