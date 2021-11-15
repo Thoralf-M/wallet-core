@@ -77,7 +77,7 @@ pub async fn generate_addresses(
                 .generate_address(&account, address_index, options.internal, changed_metadata)
                 .await?;
             let address_wrapper = AddressWrapper::new(address, bech32_hrp.clone());
-            crate::events::EVENT_EMITTER.lock().await.emit(
+            self.event_emitter.lock().await.emit(
                 account.index,
                 WalletEvent::LedgerAddressGeneration(AddressData {
                     address: address_wrapper.to_bech32(),

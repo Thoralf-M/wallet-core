@@ -5,7 +5,10 @@ pub(crate) mod builder;
 pub(crate) mod operations;
 
 #[cfg(feature = "events")]
-use crate::events::types::{Event, WalletEventType};
+use crate::events::{
+    types::{Event, WalletEventType},
+    EventEmitter,
+};
 use crate::{
     account::{
         builder::AccountBuilder,
@@ -20,6 +23,8 @@ use builder::AccountManagerBuilder;
 use operations::{get_account, recover_accounts, start_background_syncing};
 
 use iota_client::Client;
+#[cfg(feature = "events")]
+use tokio::sync::Mutex;
 use tokio::sync::RwLock;
 
 use std::{
@@ -40,6 +45,8 @@ pub struct AccountManager {
     pub(crate) background_syncing_status: Arc<AtomicUsize>,
     pub(crate) client_options: Arc<RwLock<ClientOptions>>,
     pub(crate) signer_type: SignerType,
+    #[cfg(feature = "events")]
+    pub(crate) event_emitter: Arc<Mutex<EventEmitter>>,
 }
 
 impl AccountManager {
@@ -51,7 +58,14 @@ impl AccountManager {
     /// Create a new account
     pub fn create_account(&self) -> AccountBuilder {
         log::debug!("creating account");
-        AccountBuilder::new(self.accounts.clone(), self.signer_type.clone())
+        #[cfg(not(feature = "events"))]
+        return AccountBuilder::new(self.accounts.clone(), self.signer_type.clone());
+        #[cfg(feature = "events")]
+        AccountBuilder::new(
+            self.accounts.clone(),
+            self.signer_type.clone(),
+            self.event_emitter.clone(),
+        )
     }
     /// Get an account with an AccountIdentifier
     pub async fn get_account<I: Into<AccountIdentifier>>(&self, identifier: I) -> crate::Result<AccountHandle> {
@@ -129,7 +143,7 @@ impl AccountManager {
     where
         F: Fn(&Event) + 'static + Clone + Send + Sync,
     {
-        let mut emitter = crate::events::EVENT_EMITTER.lock().await;
+        let mut emitter = self.event_emitter.lock().await;
         emitter.on(events, handler);
     }
 

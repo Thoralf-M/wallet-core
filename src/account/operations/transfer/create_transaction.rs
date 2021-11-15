@@ -147,7 +147,7 @@ pub(crate) async fn create_transaction(
                     #[cfg(feature = "events")]
                     {
                         let account_index = account_handle.read().await.index;
-                        crate::events::EVENT_EMITTER.lock().await.emit(
+                        account_handle.event_emitter.lock().await.emit(
                             account_index,
                             WalletEvent::TransferProgress(TransferProgressEvent::GeneratingRemainderDepositAddress(
                                 AddressData {
@@ -210,7 +210,7 @@ pub(crate) async fn create_transaction(
     #[cfg(feature = "events")]
     {
         let account_index = account_handle.read().await.index;
-        crate::events::EVENT_EMITTER.lock().await.emit(
+        account_handle.event_emitter.lock().await.emit(
             account_index,
             WalletEvent::TransferProgress(TransferProgressEvent::PreparedTransaction(PreparedTransactionData {
                 inputs: inputs_for_event,

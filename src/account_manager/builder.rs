@@ -1,6 +1,8 @@
 // Copyright 2021 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
 
+#[cfg(feature = "events")]
+use crate::events::EventEmitter;
 #[cfg(feature = "storage")]
 use crate::storage::manager::ManagerStorage;
 use crate::{
@@ -11,6 +13,8 @@ use crate::{
 };
 
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "events")]
+use tokio::sync::Mutex;
 use tokio::sync::RwLock;
 
 #[cfg(feature = "storage")]
@@ -129,11 +133,23 @@ impl AccountManagerBuilder {
                 Some(data) => (data.client_options, data.signer_type),
                 None => (self.client_options, self.signer_type),
             };
+            #[cfg(feature = "events")]
+            let event_emitter = Arc::new(Mutex::new(EventEmitter::new()));
             return Ok(AccountManager {
+                #[cfg(not(feature = "events"))]
                 accounts: Arc::new(RwLock::new(data.1.into_iter().map(AccountHandle::new).collect())),
+                #[cfg(feature = "events")]
+                accounts: Arc::new(RwLock::new(
+                    data.1
+                        .into_iter()
+                        .map(|a| AccountHandle::new(a, event_emitter.clone()))
+                        .collect(),
+                )),
                 background_syncing_status: Arc::new(AtomicUsize::new(0)),
                 client_options: Arc::new(RwLock::new(client_options)),
                 signer_type,
+                #[cfg(feature = "events")]
+                event_emitter,
             });
         }
         Ok(AccountManager {
@@ -141,6 +157,8 @@ impl AccountManagerBuilder {
             background_syncing_status: Arc::new(AtomicUsize::new(0)),
             client_options: Arc::new(RwLock::new(self.client_options)),
             signer_type: self.signer_type,
+            #[cfg(feature = "events")]
+            event_emitter: Arc::new(Mutex::new(EventEmitter::new())),
         })
     }
 }

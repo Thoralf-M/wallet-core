@@ -16,7 +16,10 @@ use crate::account::{
     Account,
 };
 #[cfg(feature = "events")]
-use crate::events::types::{TransferProgressEvent, WalletEvent};
+use crate::events::{
+    types::{TransferProgressEvent, WalletEvent},
+    EventEmitter,
+};
 
 use tokio::sync::{Mutex, RwLock};
 
@@ -30,14 +33,25 @@ pub struct AccountHandle {
     // if the last synced time was < `MIN_SYNC_INTERVAL` second ago, we don't sync, but only calculate the balance
     // again, because sending transactions can change that
     pub(crate) last_synced: Arc<Mutex<u128>>,
+    #[cfg(feature = "events")]
+    pub(crate) event_emitter: Arc<Mutex<EventEmitter>>,
 }
 
 impl AccountHandle {
     /// Create a new AccountHandle with an Account
+    #[cfg(not(feature = "events"))]
     pub(crate) fn new(account: Account) -> Self {
         Self {
             account: Arc::new(RwLock::new(account)),
             last_synced: Default::default(),
+        }
+    }
+    #[cfg(feature = "events")]
+    pub(crate) fn new(account: Account, event_emitter: Arc<Mutex<EventEmitter>>) -> Self {
+        Self {
+            account: Arc::new(RwLock::new(account)),
+            last_synced: Default::default(),
+            event_emitter,
         }
     }
 
@@ -84,7 +98,7 @@ impl AccountHandle {
         #[cfg(feature = "events")]
         {
             let account_index = self.account.read().await.index;
-            crate::events::EVENT_EMITTER.lock().await.emit(
+            self.event_emitter.lock().await.emit(
                 account_index,
                 WalletEvent::TransferProgress(TransferProgressEvent::SyncingAccount),
             );

@@ -156,19 +156,35 @@ mod tests {
 
     #[tokio::test]
     async fn addresses() {
+        #[cfg(feature = "events")]
+        use crate::events::EventEmitter;
         use crate::{
             account::builder::AccountBuilder,
             signing::{GenerateAddressMetadata, Network, Signer, SignerType},
         };
+        #[cfg(feature = "events")]
+        use tokio::sync::Mutex;
 
         use std::path::Path;
+        #[cfg(feature = "events")]
+        use std::sync::Arc;
 
         let mnemonic = "giant dynamic museum toddler six deny defense ostrich bomb access mercy blood explain muscle shoot shallow glad autumn author calm heavy hawk abuse rally".to_string();
         let _ = super::MnemonicSigner.store_mnemonic(&Path::new(""), mnemonic).await;
+        #[cfg(not(feature = "events"))]
         let account_handle = AccountBuilder::new(Default::default(), SignerType::Mnemonic)
             .finish()
             .await
             .unwrap();
+        #[cfg(feature = "events")]
+        let account_handle = AccountBuilder::new(
+            Default::default(),
+            SignerType::Mnemonic,
+            Arc::new(Mutex::new(EventEmitter::new())),
+        )
+        .finish()
+        .await
+        .unwrap();
         let account = account_handle.read().await;
         let address = super::MnemonicSigner
             .generate_address(

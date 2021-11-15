@@ -3,12 +3,16 @@
 
 #[cfg(any(feature = "ledger-nano", feature = "ledger-nano-simulator"))]
 use crate::account::constants::DEFAULT_LEDGER_OUTPUT_CONSOLIDATION_THRESHOLD;
+#[cfg(feature = "events")]
+use crate::events::EventEmitter;
 use crate::{
     account::{constants::DEFAULT_OUTPUT_CONSOLIDATION_THRESHOLD, handle::AccountHandle, Account, AccountOptions},
     client::options::ClientOptions,
     signing::SignerType,
 };
 
+#[cfg(feature = "events")]
+use tokio::sync::Mutex;
 use tokio::sync::RwLock;
 
 use std::{
@@ -22,9 +26,12 @@ pub struct AccountBuilder {
     alias: Option<String>,
     signer_type: SignerType,
     accounts: Arc<RwLock<Vec<AccountHandle>>>,
+    #[cfg(feature = "events")]
+    event_emitter: Arc<Mutex<EventEmitter>>,
 }
 
 impl AccountBuilder {
+    #[cfg(not(feature = "events"))]
     /// Create an IOTA client builder
     pub fn new(accounts: Arc<RwLock<Vec<AccountHandle>>>, signer_type: SignerType) -> Self {
         Self {
@@ -34,6 +41,23 @@ impl AccountBuilder {
             accounts,
         }
     }
+
+    #[cfg(feature = "events")]
+    /// Create an IOTA client builder
+    pub fn new(
+        accounts: Arc<RwLock<Vec<AccountHandle>>>,
+        signer_type: SignerType,
+        event_emitter: Arc<Mutex<EventEmitter>>,
+    ) -> Self {
+        Self {
+            client_options: None,
+            alias: None,
+            signer_type,
+            accounts,
+            event_emitter,
+        }
+    }
+
     /// Set the alias
     pub fn with_alias(mut self, alias: String) -> Self {
         self.alias.replace(alias);
@@ -69,7 +93,10 @@ impl AccountBuilder {
                 automatic_output_consolidation: true,
             },
         };
+        #[cfg(not(feature = "events"))]
         let account_handle = AccountHandle::new(account);
+        #[cfg(feature = "events")]
+        let account_handle = AccountHandle::new(account, self.event_emitter.clone());
         accounts.push(account_handle.clone());
         Ok(account_handle)
     }

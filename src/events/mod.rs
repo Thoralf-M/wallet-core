@@ -5,13 +5,10 @@ pub mod types;
 
 use types::{Event, WalletEvent, WalletEventType};
 
-use once_cell::sync::Lazy;
-use tokio::sync::Mutex;
-
-use std::{collections::HashMap, sync::Arc};
-
-type EventEmitterWrapper = Arc<Mutex<EventEmitter>>;
-pub(crate) static EVENT_EMITTER: Lazy<EventEmitterWrapper> = Lazy::new(Default::default);
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Formatter, Result},
+};
 
 type Handler<T> = Box<dyn Fn(&T) + Send + Sync + 'static>;
 
@@ -77,6 +74,16 @@ impl EventEmitter {
 impl Default for EventEmitter {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl Debug for EventEmitter {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(
+            f,
+            "event_types_with_handlers: {:?}",
+            self.handlers.keys().collect::<Vec<&WalletEventType>>()
+        )
     }
 }
 

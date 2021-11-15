@@ -19,15 +19,15 @@ use iota_client::bee_message::{
 
 /// Function to sign a transaction essence
 pub(crate) async fn sign_tx_essence(
-    account: &AccountHandle,
+    account_handle: &AccountHandle,
     essence: Essence,
     mut transaction_inputs: Vec<TransactionInput>,
     remainder: Option<Remainder>,
 ) -> crate::Result<TransactionPayload> {
     log::debug!("[TRANSFER] sign_tx_essence");
-    let account = account.read().await;
+    let account = account_handle.read().await;
     #[cfg(feature = "events")]
-    crate::events::EVENT_EMITTER.lock().await.emit(
+    account_handle.event_emitter.lock().await.emit(
         account.index,
         WalletEvent::TransferProgress(TransferProgressEvent::SigningTransaction),
     );

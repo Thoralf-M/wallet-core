@@ -25,7 +25,7 @@ pub(crate) async fn submit_transaction_payload(
     if local_pow {
         log::debug!("[TRANSFER] doing local pow");
         #[cfg(feature = "events")]
-        crate::events::EVENT_EMITTER.lock().await.emit(
+        account_handle.event_emitter.lock().await.emit(
             account_index,
             WalletEvent::TransferProgress(TransferProgressEvent::PerformingPoW),
         );
@@ -33,7 +33,7 @@ pub(crate) async fn submit_transaction_payload(
     let message = finish_pow(&client, Some(Payload::Transaction(Box::new(transaction_payload)))).await?;
     // log::debug!("[TRANSFER] submitting message {:#?}", message);
     #[cfg(feature = "events")]
-    crate::events::EVENT_EMITTER.lock().await.emit(
+    account_handle.event_emitter.lock().await.emit(
         account_index,
         WalletEvent::TransferProgress(TransferProgressEvent::Broadcasting),
     );

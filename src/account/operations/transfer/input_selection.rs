@@ -23,7 +23,7 @@ pub(crate) async fn select_inputs(
     log::debug!("[TRANSFER] select_inputs");
     let mut account = account_handle.write().await;
     #[cfg(feature = "events")]
-    crate::events::EVENT_EMITTER.lock().await.emit(
+    account_handle.event_emitter.lock().await.emit(
         account.index,
         WalletEvent::TransferProgress(TransferProgressEvent::SelectingInputs),
     );
@@ -114,7 +114,8 @@ pub(crate) async fn select_inputs(
     }
     if !INPUT_OUTPUT_COUNT_RANGE.contains(&selected_outputs.len()) {
         #[cfg(feature = "events")]
-        crate::events::EVENT_EMITTER
+        account_handle
+            .event_emitter
             .lock()
             .await
             .emit(account.index, WalletEvent::ConsolidationRequired);

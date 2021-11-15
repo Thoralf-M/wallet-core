@@ -136,7 +136,8 @@ pub(crate) async fn get_address_output_ids(
                 addresses_with_outputs.push(address);
                 #[cfg(feature = "events")]
                 if outputs_response.output_ids.len() > consolidation_threshold {
-                    crate::events::EVENT_EMITTER
+                    account_handle
+                        .event_emitter
                         .lock()
                         .await
                         .emit(account_index, WalletEvent::ConsolidationRequired);
