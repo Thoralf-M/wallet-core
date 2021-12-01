@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 # put patches on all dependencies and update only if older than 3 months for security reasons;
 tokio = { version = "1.12.0", default_features = false }
-iota-client = { git = "https://github.com/iotaledger/iota.rs", rev = "441bc46ccd20b51821cc64c4faa1d48f1ec0b2af", default_features = false, features = ["async"] }
+iota-client = { git = "https://github.com/iotaledger/iota.rs", rev = "ff518b82e91f618fa90e51f844d20c60d3f557e1", default_features = false, features = ["async"] }
 log = { version = "0.4.14", default_features = false }
 once_cell = { version = "1.8.0", default_features = false, features = ["std"] }
 serde = { version = "1.0.130", default_features = false, features = ["derive"] }
